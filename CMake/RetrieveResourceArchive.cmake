@@ -7,7 +7,7 @@ FetchContent_Declare (
 
 FetchContent_Declare (
 	game_resources
-	URL [[https://rkgmmg.dm.files.1drv.com/y4mqVgzZShJ46t4BDw-3deta8BGaErthP1Azh4NTVEfmLBD7JeSkt6c78NyIFpOLtw6RCKzLFqbv5UJslJPnfQV2hacfdqUpLHvE5lh5NlMEbLwaWYvpaAtwQyRThpQ_cE6uc0_S8eBm36uxNRx_xxi2G_3QnOQjxyUfCQkYeK7T-Zr16jYmds6YcIeH50ajaFn/assets.zip?download&psid=1]]
+	URL [[https://rkgmmg.dm.files.1drv.com/y4my-sTBEwNDaUsAPiRKCo6vUashMq5gAnrEzkLTmU3bm-A2h2bo_7Xv7V7rFKZOqy0qPeayU_gpzmVjrDVX4xpNXWqiDqeGYdfr4VdAj9EvkB48AYdlbXkA5aP4q4Ux65ioBeZtDlF0vfikfOc2IX2WudNRdDZ7LKEkX6etFqAhEYl3jXcjcQvWKpw9rOdXv_0/assets.zip?download&psid=1]]
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets"
 )
 
