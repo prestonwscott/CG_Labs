@@ -154,3 +154,4 @@ add_subdirectory ("${CMAKE_SOURCE_DIR}/src/EDAN35")
 
 install (DIRECTORY ${CMAKE_SOURCE_DIR}/shaders DESTINATION bin)
 install (DIRECTORY ${CMAKE_SOURCE_DIR}/res DESTINATION bin)
+install (DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION bin)

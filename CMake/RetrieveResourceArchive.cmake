@@ -5,8 +5,19 @@ FetchContent_Declare (
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res"
 )
 
+FetchContent_Declare (
+	game_resources
+	URL [[https://rkgmmg.dm.files.1drv.com/y4mqVgzZShJ46t4BDw-3deta8BGaErthP1Azh4NTVEfmLBD7JeSkt6c78NyIFpOLtw6RCKzLFqbv5UJslJPnfQV2hacfdqUpLHvE5lh5NlMEbLwaWYvpaAtwQyRThpQ_cE6uc0_S8eBm36uxNRx_xxi2G_3QnOQjxyUfCQkYeK7T-Zr16jYmds6YcIeH50ajaFn/assets.zip?download&psid=1]]
+	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+)
+
 FetchContent_GetProperties (resources)
 if (NOT resources_POPULATED)
 	message (STATUS "Downloading resource archive…")
 	FetchContent_Populate (resources)
+endif ()
+FetchContent_GetProperties (game_resources)
+if (NOT game_resources_POPULATED)
+	message (STATUS "Downloading game resource archive…")
+	FetchContent_Populate (game_resources)
 endif ()

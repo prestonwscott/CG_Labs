@@ -8,6 +8,9 @@ out/
 # Dependencies folder
 dependencies/
 
+# MacOS folder settings
+.DS_Store
+
 # Resources folder
 res/
 res.zip
