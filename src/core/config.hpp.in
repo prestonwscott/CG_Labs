@@ -23,4 +23,10 @@ namespace config
 		std::string const root = std::ifstream(utils::widen(tmp_path)) ? "." : "@ROOT_DIR@";
 		return root + std::string("/") + tmp_path;
 	}
+     inline std::string game_res_path(std::string const& path)
+    {
+        std::string const tmp_path = std::string("assets/") + path;
+        std::string const root = std::ifstream(utils::widen(tmp_path)) ? "." : "@ROOT_DIR@";
+        return root + std::string("/") + tmp_path;
+    }
 }
