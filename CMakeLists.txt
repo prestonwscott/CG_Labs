@@ -58,7 +58,7 @@ find_package (glfw3 ${LUGGCGL_GLFW_MIN_VERSION} REQUIRED)
 # GLM is used for matrices, vectors and camera handling
 set (LUGGCGL_GLM_DOWNLOAD_VERSION 0.9.9.5)
 include (CMake/InstallGLM.cmake)
-find_package (glm ${LUGGCGL_GLM_DOWNLOAD_VERSION} EXACT REQUIRED)
+find_package (glm ${LUGGCGL_GLM_DOWNLOAD_VERSION} REQUIRED)
 
 # TinyFileDialogs is used for displaying error popups.
 include (CMake/InstallTinyFileDialogs.cmake)
@@ -68,6 +68,15 @@ include (CMake/InstallSTB.cmake)
 
 # Resources are found in an external archive
 include (CMake/RetrieveResourceArchive.cmake)
+
+# Ogg container
+set (LUGGCGL_OGG_DOWNLOAD_VERSION 1.3.5)
+include (CMake/InstallOgg.cmake)
+find_package (ogg ${LUGGCGL_OGG_DOWNLOAD_VERSION} REQUIRED)
+
+# Vorbis audio codec
+set (LUGGCGL_VORBIS_DOWNLOAD_VERSION 1.3.7)
+include (CMake/InstallVorbis.cmake)
 
 
 # Configure *C++ Environment Variables*
