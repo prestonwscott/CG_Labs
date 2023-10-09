@@ -7,7 +7,7 @@ FetchContent_Declare (
 
 FetchContent_Declare (
 	game_resources
-	URL [[https://rkgmmg.dm.files.1drv.com/y4my-sTBEwNDaUsAPiRKCo6vUashMq5gAnrEzkLTmU3bm-A2h2bo_7Xv7V7rFKZOqy0qPeayU_gpzmVjrDVX4xpNXWqiDqeGYdfr4VdAj9EvkB48AYdlbXkA5aP4q4Ux65ioBeZtDlF0vfikfOc2IX2WudNRdDZ7LKEkX6etFqAhEYl3jXcjcQvWKpw9rOdXv_0/assets.zip?download&psid=1]]
+	URL [[https://drive.google.com/uc?export=download&id=13mHwbVK2lrjNRO2cDsMfzLgYTBat9424]]
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets"
 )
 
