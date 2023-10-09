@@ -54,4 +54,9 @@ if (NOT ogg)
 	list (APPEND CMAKE_PREFIX_PATH ${ogg_INSTALL_DIR}/lib/cmake)
 
 	set (ogg_INSTALL_DIR)
+
+	add_library( ogg::ogg INTERFACE IMPORTED)
+	set_target_properties(ogg::ogg PROPERTIES
+		INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ogg-install/include"
+	)
 endif ()

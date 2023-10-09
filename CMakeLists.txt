@@ -73,10 +73,13 @@ include (CMake/RetrieveResourceArchive.cmake)
 set (LUGGCGL_OGG_DOWNLOAD_VERSION 1.3.5)
 include (CMake/InstallOgg.cmake)
 find_package (ogg ${LUGGCGL_OGG_DOWNLOAD_VERSION} REQUIRED)
+link_directories (${OGG_LIBRARY_DIRS})
 
 # Vorbis audio codec
 set (LUGGCGL_VORBIS_DOWNLOAD_VERSION 1.3.7)
 include (CMake/InstallVorbis.cmake)
+find_package (vorbis ${LUGGCGL_VORBIS_DOWNLOAD_VERSION} REQUIRED)
+link_directories (${VORBIS_LIBRARY_DIRS})
 
 
 # Configure *C++ Environment Variables*
@@ -136,6 +139,8 @@ target_link_libraries (
                bonobo
                CG_Labs_options
                tinyfiledialogs::tinyfiledialogs
+			   ogg::ogg
+			   vorbis::vorbis
 )
 
 
