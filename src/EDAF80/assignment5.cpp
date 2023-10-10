@@ -232,9 +232,7 @@ edaf80::Assignment5::run()
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 		if (!shader_reload_failed) {
-			//
-			// Todo: Render all your geometry here.
-			//
+			sand.render(<#const glm::mat4 &view_projection#>)
 		}
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
