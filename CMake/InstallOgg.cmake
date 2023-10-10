@@ -1,34 +1,50 @@
-find_package (ogg QUIET ${LUGGCGL_OGG_DOWNLOAD_VERSION})
-if (NOT ogg)
+find_package (oggvorbis QUIET)
+if (NOT oggvorbis)
 	FetchContent_Declare (
-		ogg
-		GIT_REPOSITORY [[https://github.com/xiph/ogg.git]]
-		GIT_TAG "v${LUGGCGL_OGG_DOWNLOAD_VERSION}"
+		oggvorbis
+		GIT_REPOSITORY [[https://github.com/Iunusov/OGG-Vorbis-CMAKE.git]]
 		GIT_SHALLOW ON
 	)
 
-	FetchContent_GetProperties (ogg)
-	if (NOT ogg_POPULATED)
-		message (STATUS "Cloning ogg container")
-		FetchContent_Populate (ogg)
+	FetchContent_GetProperties (oggvorbis)
+	if (NOT oggvorbis_POPULATED)
+		message (STATUS "Configuring ogg-vorbis codec…")
+		FetchContent_Populate (oggvorbis)
 	endif ()
 
-	set (ogg_INSTALL_DIR "${FETCHCONTENT_BASE_DIR}/ogg-install")
-	if (NOT EXISTS "${ogg_INSTALL_DIR}")
-		file (MAKE_DIRECTORY ${ogg_INSTALL_DIR})
-	endif ()
-
-	message (STATUS "Setting up CMake for ogg container…")
-	execute_process (
-		COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}"
-		                         -A "${CMAKE_GENERATOR_PLATFORM}"
-		                         -DCMAKE_INSTALL_PREFIX=${ogg_INSTALL_DIR}
-		                         -DCMAKE_BUILD_TYPE=Release
-		                         ${ogg_SOURCE_DIR}
+	add_library(oggvorbis STATIC)
+	link_libraries(oggvorbis STATIC vorbis)
+	set (OGG_LIB "${oggvorbis_SOURCE_DIR}")
+	
+	execute_process (COMMAND ${CMAKE_COMMAND} ${OGG_LIB}
 		OUTPUT_VARIABLE stdout
 		ERROR_VARIABLE stderr
 		RESULT_VARIABLE result
-		WORKING_DIRECTORY ${ogg_BINARY_DIR}
+	)
+	if (result)
+		message (FATAL_ERROR "CMake setup for ogg-vorbis failed: ${result}\n"
+		                     "Standard output: ${stdout}\n"
+		                     "Error output: ${stderr}")
+	endif ()
+
+	list (APPEND CMAKE_PREFIX_PATH ${OGG_LIB})
+
+	#[==[
+	add_subdirectory ("${OGG_LIB}/bin")
+	set (OGG_BIN "${OGG_LIB}/bin")
+	add_subdirectory ("${OGG_BIN}/temp")
+	set (OGG_TEMP) "${OGG_BIN}/temp"
+
+	execute_process (
+		COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}"
+		                         -A "${CMAKE_GENERATOR_PLATFORM}"
+		                         -DCMAKE_INSTALL_PREFIX=${OGG_BIN}
+		                         -DCMAKE_BUILD_TYPE=Release
+		                         ${OGG_LIB}
+		OUTPUT_VARIABLE stdout
+		ERROR_VARIABLE stderr
+		RESULT_VARIABLE result
+		WORKING_DIRECTORY ${OGG_TEMP}
 	)
 	if (result)
 		message (FATAL_ERROR "CMake setup for ogg failed: ${result}\n"
@@ -36,9 +52,8 @@ if (NOT ogg)
 		                     "Error output: ${stderr}")
 	endif ()
 
-	message (STATUS "Building and installing the ogg container…")
 	execute_process (
-		COMMAND ${CMAKE_COMMAND} --build ${ogg_BINARY_DIR}
+		COMMAND ${CMAKE_COMMAND} --build ${OGG_TEMP}
 		                         --config Release
 		                         --target install
 		OUTPUT_VARIABLE stdout
@@ -51,12 +66,7 @@ if (NOT ogg)
 		                     "Error output: ${stderr}")
 	endif ()
 
-	list (APPEND CMAKE_PREFIX_PATH ${ogg_INSTALL_DIR}/lib/cmake)
-
-	set (ogg_INSTALL_DIR)
-
-	add_library( ogg::ogg INTERFACE IMPORTED)
-	set_target_properties(ogg::ogg PROPERTIES
-		INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ogg-install/include"
-	)
+	add_library (ogg STATIC)
+	target_link_libraries(ogg ${OGG_LIB})
+	#]==]
 endif ()

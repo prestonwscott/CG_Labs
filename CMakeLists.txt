@@ -1,4 +1,4 @@
-﻿cmake_minimum_required (VERSION 3.13)
+cmake_minimum_required (VERSION 3.13)
 
 # Workaround for the lab computers
 if (WIN32)
@@ -69,17 +69,9 @@ include (CMake/InstallSTB.cmake)
 # Resources are found in an external archive
 include (CMake/RetrieveResourceArchive.cmake)
 
-# Ogg container
-set (LUGGCGL_OGG_DOWNLOAD_VERSION 1.3.5)
-include (CMake/InstallOgg.cmake)
-find_package (ogg ${LUGGCGL_OGG_DOWNLOAD_VERSION} REQUIRED)
-link_directories (${OGG_LIBRARY_DIRS})
-
-# Vorbis audio codec
-set (LUGGCGL_VORBIS_DOWNLOAD_VERSION 1.3.7)
-include (CMake/InstallVorbis.cmake)
-find_package (vorbis ${LUGGCGL_VORBIS_DOWNLOAD_VERSION} REQUIRED)
-link_directories (${VORBIS_LIBRARY_DIRS})
+# Ogg-vorbis audio codec
+#include (CMake/InstallOgg.cmake)
+#find_package (oggvorbis REQUIRED)
 
 
 # Configure *C++ Environment Variables*
@@ -110,7 +102,6 @@ if (LUGGCGL_BUILD_DOCUMENTATION)
 	)
 endif ()
 
-
 # Define a “fake” library to store the C++ configuration:
 # all libraries and executables linking against this target will automatically
 # inherit its configuration such as C++ standard version and additional C++
@@ -139,10 +130,7 @@ target_link_libraries (
                bonobo
                CG_Labs_options
                tinyfiledialogs::tinyfiledialogs
-			   ogg::ogg
-			   vorbis::vorbis
 )
-
 
 function (copy_dlls target target_folder)
 	if (WIN32)

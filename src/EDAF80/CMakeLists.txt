@@ -14,6 +14,20 @@ target_sources (
 )
 target_link_libraries (parametric_shapes PRIVATE bonobo CG_Labs_options)
 
+add_library (bonafide STATIC)
+target_sources (
+	bonafide
+	PUBLIC
+		[[bonafide.hpp]]
+		[[animation.hpp]]
+		[[physics.hpp]]
+	PRIVATE
+		[[bonafide.cpp]]
+		[[animation.cpp]]
+		[[physics.cpp]]
+)
+target_link_libraries (bonafide PRIVATE assignment_setup)
+
 
 # Assignment 1
 add_executable (EDAF80_Assignment1)
@@ -84,7 +98,7 @@ target_sources (
 		[[assignment5.hpp]]
 		[[assignment5.cpp]]
 )
-target_link_libraries (EDAF80_Assignment5 PRIVATE assignment_setup)
+target_link_libraries (EDAF80_Assignment5 PRIVATE assignment_setup bonafide)
 copy_dlls (EDAF80_Assignment5 "${CMAKE_CURRENT_BINARY_DIR}")
 
 
