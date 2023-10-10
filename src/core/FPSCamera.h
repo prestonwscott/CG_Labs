@@ -65,5 +65,6 @@ public:
 
 #include "FPSCamera.inl"
 
+
 typedef FPSCamera<float, glm::defaultp> FPSCameraf;
 typedef FPSCamera<double, glm::defaultp> FPSCamerad;

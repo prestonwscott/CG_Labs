@@ -3,7 +3,7 @@
 #include "core/InputHandler.h"
 #include "core/FPSCamera.h"
 #include "core/WindowManager.hpp"
-
+#include "parametric_shapes.hpp"
 
 class Window;
 
@@ -16,7 +16,6 @@ namespace edaf80
 
 		Assignment5(WindowManager& windowManager);
         FPSCameraf mCamera;
-        void setGameState(enum state);
         
 		~Assignment5();
 		void run();
@@ -26,10 +25,10 @@ namespace edaf80
         InputHandler inputHandler;
 		GLFWwindow*    window;
         enum gameState {
-            MENU = 0;
-            GAME = 1;
-            PAUSE = 2;
-            EXIT = 3;
+            MENU = 0,
+            GAME = 1,
+            PAUSE = 2,
+            EXIT = 3
         };
 	};
 }

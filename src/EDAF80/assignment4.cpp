@@ -8,10 +8,8 @@
 #include "core/node.hpp"
 #include "core/ShaderProgramManager.hpp"
 #include "core/opengl.hpp"
-#include "core/JuceConfig.h"
 
 #include <glm/gtc/type_ptr.hpp>
-#include <juce_core/juce_core.h>
 #include <imgui.h>
 #include <tinyfiledialogs.h>
 

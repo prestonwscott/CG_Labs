@@ -46,7 +46,6 @@ target_link_libraries (
 		external_libs
 		glfw
 		glm
-		oggvorbis
 		$<$<NOT:$<BOOL:${WIN32}>>:dl>
 	PRIVATE
 		CG_Labs_options

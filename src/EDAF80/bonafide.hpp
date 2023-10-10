@@ -6,33 +6,30 @@
 
 #include "physics.hpp"
 #include "animation.hpp"
+#include "assignment5.hpp"
 
 #include <stdio.h>
 
-namespace Bonafide{
-    class Bonafide
-    {
-    public:
-        Bonafide(Node *objects, FPSCameraf camera);
-        int gameState;
-        struct input {
-            bool keydown_W;
-            bool keydown_A;
-            bool keydown_S;
-            bool keydown_D;
-            bool keydown_UP;
-            bool keydown_DOWN;
-            bool keydown_LEFT;
-            bool keydown_RIGHT;
-            bool keydown_SPACE;
-            bool keydown_ENTER;
-        } keydown;
-        
-        
-    private:
-        FPSCameraf camera;
-        Node *objects;
-    };
-
-
-}
+class Bonafide
+{
+public:
+    Bonafide(std::vector<Node> nod, FPSCameraf* cam);
+    int gameState;
+    struct input {
+        bool keydown_W;
+        bool keydown_A;
+        bool keydown_S;
+        bool keydown_D;
+        bool keydown_UP;
+        bool keydown_DOWN;
+        bool keydown_LEFT;
+        bool keydown_RIGHT;
+        bool keydown_SPACE;
+        bool keydown_ENTER;
+    } keydown;
+    ~Bonafide();
+    void gameframe();
+private:
+    std::vector<Node> nodes;
+    FPSCameraf* camera;
+};

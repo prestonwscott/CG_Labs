@@ -1,4 +1,4 @@
-find_package (oggvorbis QUIET)
+#[==[find_package (oggvorbis QUIET)
 if (NOT oggvorbis)
 	FetchContent_Declare (
 		oggvorbis
@@ -68,5 +68,5 @@ if (NOT oggvorbis)
 
 	add_library (ogg STATIC)
 	target_link_libraries(ogg ${OGG_LIB})
-	#]==]
 endif ()
+]==]

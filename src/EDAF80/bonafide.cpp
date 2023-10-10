@@ -6,17 +6,15 @@
 //
 
 #include "bonafide.hpp"
-#include "core/node.hpp"
+#include "core/FPSCamera.h"
 
-Bonafide::Bonafide(Node *objects, FPSCameraf camera) : this.objects = objects, this.objects = objects;
-    
-Bonafide::~Bonafide()
-{
-    bonobo::deinit();
+Bonafide::Bonafide(std::vector<Node> nod, FPSCameraf* cam){
+    nodes = nod;
+    camera = cam;
 }
 
 void
-Bonafide::Bonafide gameframe()
+Bonafide::gameframe()
 {
     
 }
