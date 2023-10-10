@@ -7,7 +7,7 @@ FetchContent_Declare (
 
 FetchContent_Declare (
 	game_resources
-	URL [[https://drive.google.com/uc?export=download&id=13mHwbVK2lrjNRO2cDsMfzLgYTBat9424]]
+	URL [[https://drive.google.com/uc?export=download&id=1e0YcE70xmH61IamBoIfCSN9N34FAB8Lr]]
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets"
 )
 
