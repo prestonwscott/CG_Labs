@@ -22,8 +22,8 @@ if (NOT vorbis)
 	execute_process (
 		COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}"
 		                         -A "${CMAKE_GENERATOR_PLATFORM}"
-		                         -DOGG_ROOT=${ogg_INSTALL_DIR}
-								 #-DOGG_DIR=${ogg_INSTALL_DIR}
+								 -DOGG_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ogg-install
+								 -DOGG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ogg-install
 		                         -DCMAKE_INSTALL_PREFIX=${vorbis_INSTALL_DIR}
 		                         -DCMAKE_BUILD_TYPE=Release
 		                         ${vorbis_SOURCE_DIR}

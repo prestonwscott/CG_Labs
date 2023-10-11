@@ -58,7 +58,7 @@ find_package (glfw3 ${LUGGCGL_GLFW_MIN_VERSION} REQUIRED)
 # GLM is used for matrices, vectors and camera handling
 set (LUGGCGL_GLM_DOWNLOAD_VERSION 0.9.9.5)
 include (CMake/InstallGLM.cmake)
-find_package (glm ${LUGGCGL_GLM_DOWNLOAD_VERSION} REQUIRED)
+find_package (glm ${LUGGCGL_GLM_DOWNLOAD_VERSION} EXACT REQUIRED)
 
 # TinyFileDialogs is used for displaying error popups.
 include (CMake/InstallTinyFileDialogs.cmake)
@@ -70,14 +70,14 @@ include (CMake/InstallSTB.cmake)
 include (CMake/RetrieveResourceArchive.cmake)
 
 # Ogg container
-set (LUGGCGL_OGG_DOWNLOAD_VERSION 1.3.5)
-include (CMake/InstallOgg.cmake)
-find_package (ogg ${LUGGCGL_OGG_DOWNLOAD_VERSION} REQUIRED)
+#set (LUGGCGL_OGG_DOWNLOAD_VERSION 1.3.5)
+#include (CMake/InstallOgg.cmake)
+#find_package (ogg ${LUGGCGL_OGG_DOWNLOAD_VERSION} REQUIRED)
 
 # Vorbis audio codec
-set (LUGGCGL_VORBIS_DOWNLOAD_VERSION 1.3.7)
-include (CMake/InstallVorbis.cmake)
-find_package (vorbis ${LUGGCGL_VORBIS_DOWNLOAD_VERSION} REQUIRED)
+#set (LUGGCGL_VORBIS_DOWNLOAD_VERSION 1.3.7)
+#include (CMake/InstallVorbis.cmake)
+#find_package (vorbis ${LUGGCGL_VORBIS_DOWNLOAD_VERSION} REQUIRED)
 
 
 # Configure *C++ Environment Variables*
@@ -108,6 +108,7 @@ if (LUGGCGL_BUILD_DOCUMENTATION)
 	)
 endif ()
 
+
 # Define a “fake” library to store the C++ configuration:
 # all libraries and executables linking against this target will automatically
 # inherit its configuration such as C++ standard version and additional C++
@@ -137,6 +138,7 @@ target_link_libraries (
                CG_Labs_options
                tinyfiledialogs::tinyfiledialogs
 )
+
 
 function (copy_dlls target target_folder)
 	if (WIN32)

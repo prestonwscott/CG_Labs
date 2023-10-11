@@ -6,7 +6,6 @@
 #include "core/helpers.hpp"
 #include "core/ShaderProgramManager.hpp"
 #include "core/node.hpp"
-#include "bonafide.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -119,13 +118,6 @@ edaf80::Assignment5::run()
         glUniform1f(glGetUniformLocation(program, "t"), elapsed_time_s);
     };
     
-    Node sand;
-    sand.set_geometry(parametric_shapes::createQuad(50.0f, 50.0f, 100u, 100u));
-    sand.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/floor_diffuse.png")), GL_TEXTURE_2D);
-    sand.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/floor_normal.png")), GL_TEXTURE_2D);
-    sand.get_transform().SetTranslate(glm::vec3(-50.0f,-50.0f,-50.0f));
-    sand.set_program(&phong_shader, sand_uniforms);
-    
     GLuint const skybox_texture = bonobo::loadTextureCubeMap(config::game_res_path("cubemaps/Ocean/posx.jpg"),
                                                              config::game_res_path("cubemaps/Ocean/negx.jpg"),
                                                              config::game_res_path("cubemaps/Ocean/posy.jpg"),
@@ -138,12 +130,6 @@ edaf80::Assignment5::run()
                                                              config::game_res_path("cubemaps/Underwater/negy.jpg"),
                                                              config::game_res_path("cubemaps/Underwater/posz.jpg"),
                                                              config::game_res_path("cubemaps/Underwater/negz.jpg"), true);
-    Node ocean;
-    ocean.set_geometry(parametric_shapes::createQuad(100.0f, 100.0f, 1000u, 1000u));
-    ocean.add_texture("cube_map", skybox_texture, GL_TEXTURE_CUBE_MAP);
-    ocean.add_texture("normal_map", bonobo::loadTexture2D(config::resources_path("textures/waves.png")), GL_TEXTURE_2D);
-    ocean.get_transform().SetTranslate(glm::vec3(-50.0f,-5.0f,-50.0f));
-    ocean.set_program(&water_shader, ocean_uniforms);
     
     Node skybox;
     skybox.set_geometry(parametric_shapes::createSphere(500.0f, 100u, 100u));
@@ -154,6 +140,22 @@ edaf80::Assignment5::run()
     waterbox.set_geometry(parametric_shapes::createSphere(500.0f, 100u, 100u));
     waterbox.add_texture("waterbox_texture", waterbox_texture, GL_TEXTURE_CUBE_MAP);
     waterbox.set_program(&skybox_shader, skybox_uniforms);
+    
+    Node ocean;
+    ocean.set_geometry(parametric_shapes::createQuad(100.0f, 100.0f, 1000u, 1000u));
+    ocean.add_texture("cube_map", skybox_texture, GL_TEXTURE_CUBE_MAP);
+    ocean.add_texture("normal_map", bonobo::loadTexture2D(config::resources_path("textures/waves.png")), GL_TEXTURE_2D);
+    ocean.get_transform().SetTranslate(glm::vec3(-50.0f,-5.0f,-50.0f));
+    ocean.set_program(&water_shader, ocean_uniforms);
+    
+    Node sand;
+    sand.set_geometry(parametric_shapes::createQuad(50.0f, 50.0f, 100u, 100u));
+    sand.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/floor_diffuse.png")), GL_TEXTURE_2D);
+    sand.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/floor_normal.png")), GL_TEXTURE_2D);
+    sand.get_transform().SetTranslate(glm::vec3(-50.0f,-50.0f,-50.0f));
+    sand.set_program(&phong_shader, sand_uniforms);
+    
+    
 
     std::vector<Node> objects;
     objects.push_back(sand);
@@ -165,7 +167,7 @@ edaf80::Assignment5::run()
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 
-    Bonafide b(objects, &mCamera);
+    bonafide b(objects, &mCamera);
     auto lastTime = std::chrono::high_resolution_clock::now();
 
 	while (!glfwWindowShouldClose(window)) {

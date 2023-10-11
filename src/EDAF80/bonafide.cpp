@@ -6,15 +6,15 @@
 //
 
 #include "bonafide.hpp"
-#include "core/FPSCamera.h"
 
-Bonafide::Bonafide(std::vector<Node> nod, FPSCameraf* cam){
+
+bonafide::bonafide(std::vector<Node> nod, FPSCameraf* cam){
     nodes = nod;
     camera = cam;
 }
 
 void
-Bonafide::gameframe()
+bonafide::gameframe()
 {
     
 }

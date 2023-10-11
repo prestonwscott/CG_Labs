@@ -4,6 +4,7 @@
 #include "core/FPSCamera.h"
 #include "core/WindowManager.hpp"
 #include "parametric_shapes.hpp"
+#include "bonafide.hpp"
 
 class Window;
 

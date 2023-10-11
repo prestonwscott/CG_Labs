@@ -1,3 +1,17 @@
+add_library (bonafide STATIC)
+target_sources (
+	bonafide
+	PUBLIC
+		[[bonafide.hpp]]
+		[[animation.hpp]]
+		[[physics.hpp]]
+	PRIVATE
+		[[bonafide.cpp]]
+		[[animation.cpp]]
+		[[physics.cpp]]
+)
+target_link_libraries (bonafide PRIVATE bonobo CG_Labs_options)
+
 add_library (interpolation STATIC)
 target_sources (
        interpolation
@@ -13,20 +27,6 @@ target_sources (
        PRIVATE [[parametric_shapes.cpp]]
 )
 target_link_libraries (parametric_shapes PRIVATE bonobo CG_Labs_options)
-
-add_library (bonafide STATIC)
-target_sources (
-	bonafide
-	PUBLIC
-		[[bonafide.hpp]]
-		[[animation.hpp]]
-		[[physics.hpp]]
-	PRIVATE
-		[[bonafide.cpp]]
-		[[animation.cpp]]
-		[[physics.cpp]]
-)
-target_link_libraries (bonafide PRIVATE bonobo CG_Labs_options)
 
 
 # Assignment 1
@@ -98,9 +98,7 @@ target_sources (
 		[[assignment5.hpp]]
 		[[assignment5.cpp]]
 )
-target_link_libraries (
-	EDAF80_Assignment5
-	PRIVATE parametric_shapes assignment_setup bonafide)
+target_link_libraries (EDAF80_Assignment5 PRIVATE assignment_setup parametric_shapes bonafide)
 copy_dlls (EDAF80_Assignment5 "${CMAKE_CURRENT_BINARY_DIR}")
 
 
