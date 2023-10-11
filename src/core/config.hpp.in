@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/various.hpp"
+#include <sys/stat.h>
 
 #include <fstream>
 #include <string>
@@ -25,10 +26,10 @@ namespace config
 	}
      inline std::string game_res_path(std::string const& path)
     {
-        struct win test;
+        struct stat test;
         std::string const tmp_path = std::string("assets/") + path;
         std::string const root = std::ifstream(utils::widen(tmp_path)) ? "." : "@ROOT_DIR@";
         std::string const dir =  root + "/" + tmp_path;
-        return win(dir, &test) ? root + std::string("/") + tmp_path : dir;
+        return stat(dir.c_str(), &test) ? root + std::string("/") + tmp_path : dir;
     }
 }

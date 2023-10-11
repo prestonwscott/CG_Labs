@@ -69,9 +69,15 @@ include (CMake/InstallSTB.cmake)
 # Resources are found in an external archive
 include (CMake/RetrieveResourceArchive.cmake)
 
-# Ogg-vorbis audio codec
-#include (CMake/InstallOgg.cmake)
-#find_package (oggvorbis REQUIRED)
+# Ogg container
+set (LUGGCGL_OGG_DOWNLOAD_VERSION 1.3.5)
+include (CMake/InstallOgg.cmake)
+find_package (ogg ${LUGGCGL_OGG_DOWNLOAD_VERSION} REQUIRED)
+
+# Vorbis audio codec
+set (LUGGCGL_VORBIS_DOWNLOAD_VERSION 1.3.7)
+include (CMake/InstallVorbis.cmake)
+find_package (vorbis ${LUGGCGL_VORBIS_DOWNLOAD_VERSION} REQUIRED)
 
 
 # Configure *C++ Environment Variables*
