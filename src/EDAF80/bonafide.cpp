@@ -8,13 +8,18 @@
 #include "bonafide.hpp"
 
 
-bonafide::bonafide(std::vector<Node> nod, FPSCameraf* cam){
+bonafide::bonafide(std::vector<Node> nod, FPSCameraf* cam, long long* time){
     nodes = nod;
     camera = cam;
+    clock = *time;
 }
 
 void
 bonafide::gameframe()
 {
     
+    animation();
+    
+    
 }
+

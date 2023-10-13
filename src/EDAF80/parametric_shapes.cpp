@@ -30,8 +30,8 @@ parametric_shapes::createQuad(float const width, float const height,
             {
                 tess_vertices[index] = glm::vec3((width / horizontal_split_count) * i, 0.0f, (height / vertical_split_count) * j);
                 
-                texcoords[index] = glm::vec3(static_cast<float>(i) / (static_cast<float>(horizontal_split_count)),
-                                             static_cast<float>(j) / (static_cast<float>(vertical_split_count)), 0.0f);
+                texcoords[index] = glm::vec3(static_cast<float>(i) / (static_cast<float>(horizontal_split_count + 2u)),
+                                             static_cast<float>(j) / (static_cast<float>(vertical_split_count + 2u)), 0.0f);
                 
                 //tangents
                 auto const t = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -49,7 +49,7 @@ parametric_shapes::createQuad(float const width, float const height,
             }
         }
         
-        auto tess_index_sets = std::vector<glm::uvec3>(2u * (horizontal_split_count - 1) * (vertical_split_count));
+        auto tess_index_sets = std::vector<glm::uvec3>(2u * (horizontal_split_count) * (vertical_split_count));
         index = 0u;
         for (unsigned int i = 0u; i < horizontal_split_count - 1; i++)
         {

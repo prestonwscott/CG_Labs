@@ -6,3 +6,8 @@
 //
 
 #include "animation.hpp"
+
+
+void animation(){
+
+}

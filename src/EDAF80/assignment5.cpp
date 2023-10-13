@@ -167,13 +167,19 @@ edaf80::Assignment5::run()
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 
-    bonafide b(objects, &mCamera);
     auto lastTime = std::chrono::high_resolution_clock::now();
+    
+    std::chrono::time_point<std::chrono::high_resolution_clock> now_Us;
+    long long time;
+    
+    bonafide b(objects, &mCamera, &time);
 
 	while (!glfwWindowShouldClose(window)) {
         auto const nowTime = std::chrono::high_resolution_clock::now();
 		auto const deltaTimeUs = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - lastTime);
 		lastTime = nowTime;
+        now_Us = std::chrono::time_point_cast<std::chrono::microseconds>(lastTime);
+        time = now_Us.time_since_epoch().count();
         
         /*if (!pause_animation) {
             elapsed_time_s += std::chrono::duration<float>(deltaTimeUs).count();
@@ -181,7 +187,7 @@ edaf80::Assignment5::run()
 		//inputHandler.SetUICapture(io.WantCaptureMouse, io.WantCaptureKeyboard);
 
         
-        
+        b.gameframe();
 		glfwPollEvents();
 		inputHandler.Advance();
 		mCamera.Update(deltaTimeUs, inputHandler);
