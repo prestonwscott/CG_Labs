@@ -30,6 +30,6 @@ namespace edaf80
             GAME = 1,
             PAUSE = 2,
             EXIT = 3
-        };
+        } state = MENU;
 	};
 }

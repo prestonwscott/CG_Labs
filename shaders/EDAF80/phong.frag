@@ -1,52 +1,58 @@
 #version 410
 
-uniform mat4 normal_model_to_world;
-uniform int use_normal_mapping;
-uniform sampler2D normal_map;
+uniform vec3 light_position;
+uniform vec3 camera_position;
 
-uniform int has_diffuse_texture;
+uniform vec3 ambient_colour;
+uniform vec3 diffuse_colour;
+uniform vec3 specular_colour;
+uniform float shininess_value;
+
 uniform sampler2D diffuse_texture;
+uniform sampler2D specular_texture;
+uniform sampler2D normal_texture;
 
-uniform int has_opacity_texture;
-uniform sampler2D specular_map;
+uniform bool use_normal_mapping;
+
+
 
 in VS_OUT {
-    vec2 texcoord;
+    vec3 vertex;
     vec3 normal;
-    vec3 light;
-    vec3 view;
+    vec2 text_coord;
     mat3 TBN;
 } fs_in;
-
-uniform vec3 ambient;
-uniform vec3 diffuse;
-uniform vec3 specular;
-uniform float shininess;
 
 out vec4 frag_color;
 
 void main()
 {
-    vec3 N = normalize(fs_in.normal);
-
-    if(use_normal_mapping == 1){
-        vec3 n = normalize(texture(normal_map, fs_in.texcoord).xyz*2.0-1.0);
-        N = (normal_model_to_world * vec4(fs_in.TBN * n,0)).xyz;
+vec3 ka; //Material ambient
+vec3 kd; //Material diffuse
+vec3 ks; //Material specular
+vec3 normal;
+vec3 N;
+    if(use_normal_mapping == true)
+    {
+        normal = texture(normal_texture, fs_in.text_coord).rgb;
+        normal = normal*2.0 - 1.0;
+        N = normalize(fs_in.TBN * normal);
     }
-    
-    vec3 L = normalize(fs_in.light);
-    vec3 V = normalize(fs_in.view);
-
-    vec3 R = normalize(reflect(-L,N));
-
-    vec3 diff = diffuse*max(dot(N,L),0.0);
-    vec3 spec = specular*pow(max(dot(R,V),0.0),shininess) * texture(specular_map, fs_in.texcoord).xyz;;
-
-    if(has_diffuse_texture == 1){
-        diff = diff * texture(diffuse_texture, fs_in.texcoord).xyz;
+    else
+    {
+        N = normalize(fs_in.normal); //Normal vector
     }
 
-    frag_color.xyz = ambient + diff + spec;
+    kd = texture(diffuse_texture, fs_in.text_coord).rgb;
+    ks = texture(specular_texture, fs_in.text_coord).rgb;
 
+    vec3 L = normalize(light_position - fs_in.vertex); //Light vector
+    vec3 V = normalize(camera_position - fs_in.vertex); //Viewer vector
+
+    //vec3 ambient = ka * ambient_colour;
+    vec3 diffuse = kd  * max( dot(N, L), 0.0);
+    vec3 specular = ks * pow( max( dot(reflect(-L,N), V) , 0.0 ), shininess_value ); //where reflect(-L,N) is the ligh reflect vector
+
+    frag_color.xyz = ambient_colour + diffuse + specular;
     frag_color.w = 1.0;
 }

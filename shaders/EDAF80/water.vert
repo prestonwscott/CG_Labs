@@ -2,66 +2,67 @@
 
 layout (location = 0) in vec3 vertex;
 layout (location = 1) in vec3 normal;
-layout (location = 2) in vec3 textcoord;
+layout (location = 2) in vec3 text_coord;
+layout (location = 3) in vec3 tangents;
+layout (location = 4) in vec3 binormal;
 
 uniform mat4 vertex_model_to_world;
 uniform mat4 normal_model_to_world;
 uniform mat4 vertex_world_to_clip;
-
-uniform vec3 camera_position;
-uniform float t;
-uniform vec3 camera_postion;
+uniform float elapsed_time_s;
 
 out VS_OUT {
     vec3 vertex;
     vec3 normal;
-    vec3 textcoord;
-    vec3 view;
+    vec2 text_coord;
+    vec3 tangents;
+    vec3 binormal;
     mat3 TBN;
-    vec2 normalCoord0;
-    vec2 normalCoord1;
-    vec2 normalCoord2;
+    float time;
 } vs_out;
 
-
-vec3 waves(vec2 position, vec2 direction, float amplitude, float frequency, float phase, float sharpness, float time)
+void wave(in float Amp,in vec3 Di, in float freq, in float phase, in float sharpness, in float time,
+            inout vec3 vertex, inout vec3 Grad)
 {
- float dp = position.x * direction.x + position.y * direction.y;
- float alpha = sin(dp * frequency + time * phase) * 0.5 + 0.5;
-
- float wave = amplitude * pow(alpha, sharpness);
- float d_wave = 0.5f * sharpness * frequency * amplitude * pow(alpha, sharpness-1) * cos(dp* frequency + time* phase);
- 
- return vec3(wave, d_wave * direction.x, d_wave * direction.y);
+    float angle = (Di.x * vertex.x + Di.z * vertex.z)*freq + time*phase;
+    float alpha = 0.5*sin(angle) + 0.5;
+    vertex.y += Amp * pow(alpha, sharpness); //Sum all the wave vertex y
+    Grad.x += 0.5 * sharpness * freq * Amp * pow(alpha, (sharpness - 1.0f)) * cos(angle)* Di.x;
+    Grad.z += 0.5 * sharpness * freq * Amp * pow(alpha, (sharpness - 1.0f)) * cos(angle)* Di.z;
 }
 
 void main()
 {
-    vec3 wave1 = waves(vertex.xz, vec2(-1.0, 0.0), 1.0, 0.2, 0.5, 2.0, t);
-    vec3 wave2 = waves(vertex.xz, vec2(-0.7, 0.7), 0.5, 0.4, 1.3, 2.0, t);
+    vec3 Grad = vec3(0.0f); //Gradient of wave
+    vec3 Di_1 = vec3(-1.0f, 0.0f, 0.0f);
+    vec3 Di_2 = vec3(-0.7f, 0.0f, 0.7f);
+    float Amp1 = 1.0f;
+    float Amp2 = 0.5f;
+    float freq1 = 0.2f;
+    float freq2 = 0.4f;
+    float phase1 = 0.5f;
+    float phase2 = 1.3f;
+    float sharpness1 = 2.0f;
+    float sharpness2 = 2.0f;
 
-    vec2 texScale = vec2(8,4);
-    float normalTime = mod(t, 100);
-    vec2 normalSpeed = vec2(-0.05,0);
-    vs_out.normalCoord0.xy = textcoord.xy * texScale + normalTime * normalSpeed;
-    vs_out.normalCoord1.xy = textcoord.xy * texScale * 2 + normalTime * normalSpeed * 4;
-    vs_out.normalCoord2.xy = textcoord.xy * texScale * 4 + normalTime * normalSpeed * 8;
+    vec3 displace_vertex = vertex;
+    wave(Amp1, Di_1, freq1, phase1, sharpness1, elapsed_time_s , displace_vertex, Grad);
+    wave(Amp2, Di_2, freq2, phase2, sharpness2, elapsed_time_s , displace_vertex, Grad);
 
-    vec3 normal = normalize(vec3(-(wave1.y+wave2.y), 1.0, -(wave1.z+wave2.z)));
-    vec3 binormal = normalize(vec3(0.0, wave1.z + wave2.z, 1.0));
-    vec3 tangent = normalize(vec3(1, wave1.y+wave2.y, 0));
-    vs_out.TBN = mat3(tangent,binormal,normal);
+    vs_out.vertex = vec3(vertex_model_to_world * vec4(displace_vertex, 1.0f));
+    vs_out.normal = vec3( -Grad.x, 1.0f, -Grad.z );
+    vs_out.text_coord = text_coord.xz;
+    vs_out.tangents = vec3( 1.0f, Grad.x, 0.0f );
+    vs_out.binormal = vec3( 0.0f, Grad.z, 1.0f);
+    vs_out.time = elapsed_time_s;
 
-    vec3 displaced_vertex = vertex;
-    displaced_vertex.y += wave1.x;
-    displaced_vertex.y += wave2.x;
+//    vec3 T = normalize(vec3(vertex_model_to_world * vec4(vs_out.tangents, 0.0)));
+//    vec3 B = normalize(vec3(vertex_model_to_world * vec4(vs_out.binormal, 0.0)));
+//    vec3 N = normalize(vec3(normal_model_to_world * vec4(vs_out.normal, 0.0)));
+    vec3 T = normalize(vs_out.tangents);
+    vec3 B = normalize(vs_out.binormal);
+    vec3 N = normalize(vs_out.normal);
+    vs_out.TBN = mat3(T, B, N);
 
-    vec4 vertexPos = vertex_model_to_world * vec4(displaced_vertex, 1.0);
-
-    vs_out.vertex = vertexPos.xyz;
-    vs_out.normal = normal;
-    vs_out.view = camera_postion - vertexPos.xyz;
-    vs_out.textcoord = textcoord;
-
-    gl_Position = vertex_world_to_clip * vertexPos;
+    gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(displace_vertex, 1.0f);
 }

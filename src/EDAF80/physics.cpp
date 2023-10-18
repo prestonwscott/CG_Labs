@@ -1,8 +1,7 @@
-//
-//  physics.cpp
-//  EDAF80_Assignment5
-//
-//  Created by Preston Scott on 9/10/23.
-//
+#include "bonafide.hpp"
 
-#include "physics.hpp"
+void
+bonafide::physics_c::test()
+{
+   printf("%f\n", clock);
+}

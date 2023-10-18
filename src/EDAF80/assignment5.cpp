@@ -15,6 +15,8 @@
 #include <clocale>
 #include <stdexcept>
 
+#define key(k) inputHandler.GetKeycodeState(k) & PRESSED
+
 edaf80::Assignment5::Assignment5(WindowManager& windowManager) :
 	mCamera(0.5f * glm::half_pi<float>(),
 	        static_cast<float>(config::resolution_x) / static_cast<float>(config::resolution_y),
@@ -22,7 +24,7 @@ edaf80::Assignment5::Assignment5(WindowManager& windowManager) :
 	inputHandler(), mWindowManager(windowManager), window(nullptr)
 {
 	WindowManager::WindowDatum window_datum{inputHandler, mCamera, config::resolution_x, config::resolution_y, 0, 0, 0, 0};
-
+    
 	window = mWindowManager.CreateGLFWWindow("EDAF80: Assignment 5", window_datum, config::msaa_rate);
 	if (window == nullptr) {
 		throw std::runtime_error("Failed to get a window: aborting!");
@@ -39,6 +41,7 @@ edaf80::Assignment5::~Assignment5()
 void
 edaf80::Assignment5::run()
 {
+    
 	// Set up the camera
 	mCamera.mWorld.SetTranslate(glm::vec3(0.0f, 0.0f, 6.0f));
 	mCamera.mMouseSensitivity = glm::vec2(0.003f);
@@ -64,10 +67,19 @@ edaf80::Assignment5::run()
         LogError("Failed to load water shader");
         return;
     }
+    GLuint sand_shader = 0u;
+    program_manager.CreateAndRegisterProgram("Sand",
+                                             { { ShaderType::vertex, "EDAF80/sand.vert" },
+                                               { ShaderType::fragment, "EDAF80/sand.frag" } },
+                                             sand_shader);
+    if (sand_shader == 0u) {
+        LogError("Failed to load sand shader");
+        return;
+    }
     GLuint diffuse_shader = 0u;
     program_manager.CreateAndRegisterProgram("Diffuse",
-                                             { { ShaderType::vertex, "EDAF80/diffuse.vert" },
-                                               { ShaderType::fragment, "EDAF80/diffuse.frag" } },
+                                             { { ShaderType::vertex, "EDAF80/texture.vert" },
+                                               { ShaderType::fragment, "EDAF80/texture.frag" } },
                                              diffuse_shader);
     if (diffuse_shader == 0u) {
         LogError("Failed to load diffuse shader");
@@ -97,139 +109,297 @@ edaf80::Assignment5::run()
     auto camera_position = mCamera.mWorld.GetTranslation();
     float elapsed_time_s = 0.0f;
     
-    auto const sand_uniforms = [&light_position,&camera_position](GLuint program){
+    bonobo::material_data water_material;
+    water_material.ambient = glm::vec3(0.0f, 0.0f, 0.3f);
+    water_material.diffuse = glm::vec3(0.0f, 0.0f, 0.2f);
+    water_material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    water_material.shininess = 6.0f;
+    
+    bonobo::material_data sand_material;
+    sand_material.ambient = glm::vec3(0.1f, 0.1f, 0.1f);
+    sand_material.diffuse = glm::vec3(0.7f, 0.2f, 0.4f);
+    sand_material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    sand_material.shininess = 5.0f;
+    
+    bonobo::material_data submarine_material;
+    submarine_material.ambient = glm::vec3(0.3f, 0.3f, 0.3f);
+    submarine_material.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+    submarine_material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+    submarine_material.shininess = 10.0f;
+    
+    bonobo::material_data tuna_material;
+    tuna_material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    tuna_material.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+    tuna_material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+    tuna_material.shininess = 10.0f;
+    
+    bonobo::material_data shark_material;
+    shark_material.ambient = glm::vec3(0.5f, 0.5f, 0.5f);
+    shark_material.diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+    shark_material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+    shark_material.shininess = 10.0f;
+    
+    bonobo::material_data rock_material;
+    shark_material.ambient = glm::vec3(0.9f, 0.9f, 0.9f);
+    shark_material.diffuse = glm::vec3(0.6f, 0.6f, 0.6f);
+    shark_material.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+    shark_material.shininess = 2.0f;
+
+    auto const water_uniforms = [&elapsed_time_s, &light_position, &camera_position](GLuint program) {
+        glUniform1f(glGetUniformLocation(program, "elapsed_time_s"), elapsed_time_s);
         glUniform1i(glGetUniformLocation(program, "use_normal_mapping"), 1);
         glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
         glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
-        glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(glm::vec3(0.1f, 0.1f, 0.1f)));
-        glUniform3fv(glGetUniformLocation(program, "diffuse"), 1, glm::value_ptr(glm::vec3(0.7f, 0.2f, 0.4f)));
-        glUniform3fv(glGetUniformLocation(program, "specular"), 1, glm::value_ptr(glm::vec3(0.2f, 0.2f, 0.4f)));
-        glUniform1f(glGetUniformLocation(program, "shininess"), 1.0f);
     };
-    
-    auto const ocean_uniforms = [&light_position,&camera_position,&elapsed_time_s](GLuint program) {
+    auto const sand_uniforms = [&light_position, &camera_position](GLuint program) {
+        glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+        glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
+    };
+    auto const diffuse_uniforms = [&light_position,&camera_position,&elapsed_time_s](GLuint program) {
         glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
         glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
         glUniform1f(glGetUniformLocation(program, "t"), elapsed_time_s);
     };
-    auto const skybox_uniforms = [&light_position,&camera_position,&elapsed_time_s](GLuint program) {
+    auto const phong_uniforms = [&light_position, &camera_position, &submarine_material, &elapsed_time_s](GLuint program) {
+        glUniform1i(glGetUniformLocation(program, "use_normal_mapping"), 1);
         glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
         glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
-        glUniform1f(glGetUniformLocation(program, "t"), elapsed_time_s);
+        glUniform3fv(glGetUniformLocation(program, "ambient_colour"), 1, glm::value_ptr(submarine_material.ambient));
+        glUniform3fv(glGetUniformLocation(program, "diffuse_colour"), 1, glm::value_ptr(submarine_material.diffuse));
+        glUniform3fv(glGetUniformLocation(program, "specular_colour"), 1, glm::value_ptr(submarine_material.specular));
+        glUniform1f(glGetUniformLocation(program, "shininess"), submarine_material.shininess);
+        glUniform1f(glGetUniformLocation(program, "elapsed_time_s"), elapsed_time_s);
     };
     
-    GLuint const skybox_texture = bonobo::loadTextureCubeMap(config::game_res_path("cubemaps/Ocean/posx.jpg"),
-                                                             config::game_res_path("cubemaps/Ocean/negx.jpg"),
-                                                             config::game_res_path("cubemaps/Ocean/posy.jpg"),
-                                                             config::game_res_path("cubemaps/Ocean/negy.jpg"),
-                                                             config::game_res_path("cubemaps/Ocean/posz.jpg"),
-                                                             config::game_res_path("cubemaps/Ocean/negz.jpg"), true);
+    
+    GLuint const skybox_texture = bonobo::loadTextureCubeMap(config::game_res_path("cubemaps/Ocean/posx.png"),
+                                                             config::game_res_path("cubemaps/Ocean/negx.png"),
+                                                             config::game_res_path("cubemaps/Ocean/posy.png"),
+                                                             config::game_res_path("cubemaps/Ocean/negy.png"),
+                                                             config::game_res_path("cubemaps/Ocean/posz.png"),
+                                                             config::game_res_path("cubemaps/Ocean/negz.png"), true);
     GLuint const waterbox_texture = bonobo::loadTextureCubeMap(config::game_res_path("cubemaps/Underwater/posx.jpg"),
                                                              config::game_res_path("cubemaps/Underwater/negx.jpg"),
                                                              config::game_res_path("cubemaps/Underwater/posy.jpg"),
                                                              config::game_res_path("cubemaps/Underwater/negy.jpg"),
                                                              config::game_res_path("cubemaps/Underwater/posz.jpg"),
                                                              config::game_res_path("cubemaps/Underwater/negz.jpg"), true);
+
     
     Node skybox;
     skybox.set_geometry(parametric_shapes::createSphere(500.0f, 100u, 100u));
-    skybox.add_texture("skybox_texture", skybox_texture, GL_TEXTURE_CUBE_MAP);
-    skybox.set_program(&skybox_shader, skybox_uniforms);
+    skybox.add_texture("diffuse_map", skybox_texture, GL_TEXTURE_CUBE_MAP);
+    skybox.set_program(&skybox_shader, diffuse_uniforms);
     
     Node waterbox;
     waterbox.set_geometry(parametric_shapes::createSphere(500.0f, 100u, 100u));
-    waterbox.add_texture("waterbox_texture", waterbox_texture, GL_TEXTURE_CUBE_MAP);
-    waterbox.set_program(&skybox_shader, skybox_uniforms);
+    waterbox.add_texture("diffuse_map", waterbox_texture, GL_TEXTURE_CUBE_MAP);
+    waterbox.set_program(&skybox_shader, diffuse_uniforms);
     
     Node ocean;
-    ocean.set_geometry(parametric_shapes::createQuad(100.0f, 100.0f, 1000u, 1000u));
+    ocean.set_geometry(parametric_shapes::createQuad(1000.0f, 1000.0f, 1000u, 1000u));
+    ocean.add_texture("normal_map", bonobo::loadTexture2D(config::resources_path("textures/waves.png"), true), GL_TEXTURE_2D);
     ocean.add_texture("cube_map", skybox_texture, GL_TEXTURE_CUBE_MAP);
-    ocean.add_texture("normal_map", bonobo::loadTexture2D(config::resources_path("textures/waves.png")), GL_TEXTURE_2D);
-    ocean.get_transform().SetTranslate(glm::vec3(-50.0f,-5.0f,-50.0f));
-    ocean.set_program(&water_shader, ocean_uniforms);
+    ocean.set_material_constants(water_material);
+    ocean.set_program(&water_shader, water_uniforms);
     
     Node sand;
     sand.set_geometry(parametric_shapes::createQuad(50.0f, 50.0f, 100u, 100u));
     sand.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/floor_diffuse.png")), GL_TEXTURE_2D);
     sand.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/floor_normal.png")), GL_TEXTURE_2D);
-    sand.get_transform().SetTranslate(glm::vec3(-50.0f,-50.0f,-50.0f));
-    sand.set_program(&phong_shader, sand_uniforms);
-    
-    
+    sand.add_texture("specular_map", bonobo::loadTexture2D(config::game_res_path("textures/floor_specular.png")), GL_TEXTURE_2D);
+    sand.set_material_constants(sand_material);
+    sand.set_program(&sand_shader, sand_uniforms);
 
+    Node submarine_body;
+    std::vector<bonobo::mesh_data> submarine_body_mesh = bonobo::loadObjects(config::game_res_path("objects/submarine.obj"));;
+    submarine_body.set_geometry(submarine_body_mesh.front());
+    submarine_body.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/submarine_diff.png")), GL_TEXTURE_2D);
+    submarine_body.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/submarine_normal.png")), GL_TEXTURE_2D);
+    submarine_body.add_texture("specular_map", bonobo::loadTexture2D(config::game_res_path("textures/submarine_spec.png")), GL_TEXTURE_2D);
+    submarine_body.set_material_constants(submarine_material);
+    submarine_body.get_transform().SetScale(0.01f);
+    submarine_body.set_program(&phong_shader, phong_uniforms);
+    
+    Node submarine_propeller;
+    std::vector<bonobo::mesh_data> submarine_propeller_mesh = bonobo::loadObjects(config::game_res_path("objects/propeller.obj"));
+    submarine_propeller.set_geometry(submarine_propeller_mesh.front());
+    submarine_propeller.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/propeller.jpg")), GL_TEXTURE_2D);
+    submarine_propeller.get_transform().SetScale(0.13f);
+    submarine_propeller.get_transform().SetRotateZ(glm::half_pi<float>());
+    submarine_propeller.set_program(&diffuse_shader, diffuse_uniforms);
+    /*
+    Node whale_skeleton;
+    std::vector<bonobo::mesh_data> whale_skeleton_mesh = bonobo::loadObjects(config::game_res_path("objects/whale-skeleton.obj"));;
+    whale_skeleton.set_geometry(whale_skeleton_mesh.front());
+    whale_skeleton.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/bone.jpg")), GL_TEXTURE_2D);
+    whale_skeleton.set_program(&diffuse_shader, diffuse_uniforms);
+    
+    Node dino_skeleton;
+    std::vector<bonobo::mesh_data> dino_skeleton_mesh = bonobo::loadObjects(config::game_res_path("objects/dino-skeleton.obj"));;
+    dino_skeleton.set_geometry(dino_skeleton_mesh.front());
+    dino_skeleton.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/bone.jpg")), GL_TEXTURE_2D);
+    dino_skeleton.set_program(&diffuse_shader, diffuse_uniforms);
+    
+    Node tuna;
+    std::vector<bonobo::mesh_data> tuna_mesh = bonobo::loadObjects(config::game_res_path("objects/tuna_fish.obj"));;
+    tuna.set_geometry(tuna_mesh.front());
+    tuna.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/tuna_body_diff.png")), GL_TEXTURE_2D);
+    tuna.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/tuna_body_normal.png")), GL_TEXTURE_2D);
+    tuna.add_texture("specular_map", bonobo::loadTexture2D(config::game_res_path("textures/tuna_body_rough.png")), GL_TEXTURE_2D);
+    tuna.set_material_constants(tuna_material);
+    tuna.set_program(&phong_shader, phong_uniforms);
+    
+    Node shark;
+    std::vector<bonobo::mesh_data> shark_mesh = bonobo::loadObjects(config::game_res_path("objects/shark.obj"));;
+    shark.set_geometry(shark_mesh.front());
+    shark.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/shark_diff.png")), GL_TEXTURE_2D);
+    shark.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/shark_normal.png")), GL_TEXTURE_2D);
+    shark.add_texture("specular_map", bonobo::loadTexture2D(config::game_res_path("textures/shark_rough.png")), GL_TEXTURE_2D);
+    shark.set_material_constants(shark_material);
+    shark.set_program(&phong_shader, phong_uniforms);
+    
+    Node hammer_shark;
+    std::vector<bonobo::mesh_data> hammershark_mesh = bonobo::loadObjects(config::game_res_path("objects/hammershark.obj"));;
+    hammer_shark.set_geometry(hammershark_mesh.front());
+    hammer_shark.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/hammershark_diff.png")), GL_TEXTURE_2D);
+    hammer_shark.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/hammershark_normal.png")), GL_TEXTURE_2D);
+    hammer_shark.add_texture("specular_map", bonobo::loadTexture2D(config::game_res_path("textures/hammershark_spec.png")), GL_TEXTURE_2D);
+    hammer_shark.set_material_constants(shark_material);
+    hammer_shark.set_program(&phong_shader, phong_uniforms);
+    
+    Node seaweed;
+    std::vector<bonobo::mesh_data> seaweed_mesh = bonobo::loadObjects(config::game_res_path("objects/seaweed.obj"));;
+    seaweed.set_geometry(seaweed_mesh.front());
+    seaweed.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/seaweed_diffuse.png")), GL_TEXTURE_2D);
+    seaweed.set_program(&diffuse_shader, diffuse_uniforms);
+    
+    Node rock;
+    std::vector<bonobo::mesh_data> rock_mesh = bonobo::loadObjects(config::game_res_path("objects/rock.obj"));;
+    rock.set_geometry(rock_mesh.front());
+    rock.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/rock_diff.png")), GL_TEXTURE_2D);
+    rock.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/rock_normal.png")), GL_TEXTURE_2D);
+    rock.add_texture("specular_map", bonobo::loadTexture2D(config::game_res_path("textures/rock_rough.png")), GL_TEXTURE_2D);
+    rock.set_material_constants(rock_material);
+    rock.set_program(&phong_shader, phong_uniforms);
+    
+    Node ammonite;
+    std::vector<bonobo::mesh_data> ammonite_mesh = bonobo::loadObjects(config::game_res_path("objects/ammonite.obj"));;
+    ammonite.set_geometry(ammonite_mesh.front());
+    ammonite.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/ammonite_diff.jpg")), GL_TEXTURE_2D);
+    ammonite.set_program(&diffuse_shader, diffuse_uniforms);
+    
+    Node coin;
+    std::vector<bonobo::mesh_data> coin_mesh = bonobo::loadObjects(config::game_res_path("objects/coin.obj"));;
+    coin.set_geometry(coin_mesh.front());
+    coin.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/coin_diff.png")), GL_TEXTURE_2D);
+    coin.set_program(&diffuse_shader, diffuse_uniforms);
+    
+    Node treasure;
+    std::vector<bonobo::mesh_data> treasure_mesh = bonobo::loadObjects(config::game_res_path("objects/treasure.obj"));;
+    treasure.set_geometry(treasure_mesh.front());
+    treasure.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("textures/treasure_diff.png")), GL_TEXTURE_2D);
+    treasure.add_texture("normal_map", bonobo::loadTexture2D(config::game_res_path("textures/treasure_normal.png")), GL_TEXTURE_2D);
+    treasure.add_texture("specular_map", bonobo::loadTexture2D(config::game_res_path("textures/treasure_spec.png")), GL_TEXTURE_2D);
+    treasure.set_material_constants(submarine_material);
+    treasure.set_program(&phong_shader, phong_uniforms);
+    */
+    Node pane;
+    pane.set_geometry(parametric_shapes::createPane(1.2f, 0.5f));
+    pane.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("splash/title.png")), GL_TEXTURE_2D);
+    //pane.get_transform().SetRotateX(glm::half_pi<float>());
+    pane.set_program(&diffuse_shader,diffuse_uniforms);
+    
     std::vector<Node> objects;
-    objects.push_back(sand);
-    objects.push_back(ocean);
-    objects.push_back(skybox);
-    objects.push_back(waterbox);
+    /*
+    Node dummy;
+    objects.emplace_back(sand);
+    objects.emplace_back(ocean);
+    objects.emplace_back(skybox);
+    objects.emplace_back(waterbox);
+    objects.emplace_back(submarine_body);
+    objects.emplace_back(submarine_propeller);
+    objects.emplace_back(whale_skeleton);
+    objects.emplace_back(dino_skeleton);
+    objects.emplace_back(tuna);
+    objects.emplace_back(shark);
+    objects.emplace_back(hammer_shark);
+    objects.emplace_back(seaweed);
+    objects.emplace_back(rock);
+    objects.emplace_back(ammonite);
+    objects.emplace_back(coin);
+    objects.emplace_back(treasure);
+    objects.emplace_back(pane);*/
+    
+     Node dummy;
+     objects.emplace_back(sand);
+     objects.emplace_back(ocean);
+     objects.emplace_back(skybox);
+     objects.emplace_back(waterbox);
+     objects.emplace_back(submarine_body);
+     objects.emplace_back(submarine_propeller);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(dummy);
+     objects.emplace_back(pane);
     
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 
     auto lastTime = std::chrono::high_resolution_clock::now();
-    
     std::chrono::time_point<std::chrono::high_resolution_clock> now_Us;
-    long long time;
     
-    bonafide b(objects, &mCamera, &time);
+    bonafide b(objects, &mCamera, &elapsed_time_s);
+    
+    b.keydown.W.key = 'W';
+    b.keydown.A.key = 'A';
+    b.keydown.S.key = 'S';
+    b.keydown.D.key = 'D';
+    b.keydown.UP.key = 'U'; //up
+    b.keydown.DOWN.key = 'N'; //down
+    b.keydown.RIGHT.key = 'R'; //right
+    b.keydown.LEFT.key = 'L'; //left
+    b.keydown.ENTER.key = 'E'; //enter
+    b.keydown.SPACE.key = 'P'; //space
 
 	while (!glfwWindowShouldClose(window)) {
         auto const nowTime = std::chrono::high_resolution_clock::now();
 		auto const deltaTimeUs = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - lastTime);
 		lastTime = nowTime;
-        now_Us = std::chrono::time_point_cast<std::chrono::microseconds>(lastTime);
-        time = now_Us.time_since_epoch().count();
         
-        /*if (!pause_animation) {
-            elapsed_time_s += std::chrono::duration<float>(deltaTimeUs).count();
-        }*/
-		//inputHandler.SetUICapture(io.WantCaptureMouse, io.WantCaptureKeyboard);
-
+        /*auto& io = ImGui::GetIO();
+        inputHandler.SetUICapture(io.WantCaptureMouse, io.WantCaptureKeyboard);*/
         
-        b.gameframe();
 		glfwPollEvents();
 		inputHandler.Advance();
-		mCamera.Update(deltaTimeUs, inputHandler);
+		mCamera.Update(deltaTimeUs * 20, inputHandler);
 
-		if (inputHandler.GetKeycodeState(GLFW_KEY_W) & JUST_PRESSED)
-            b.keydown.keydown_W = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_W) & JUST_RELEASED)
-            b.keydown.keydown_W = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_A) & JUST_PRESSED)
-            b.keydown.keydown_A = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_A) & JUST_RELEASED)
-            b.keydown.keydown_A = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_S) & JUST_PRESSED)
-            b.keydown.keydown_S = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_S) & JUST_RELEASED)
-            b.keydown.keydown_S = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_D) & JUST_PRESSED)
-            b.keydown.keydown_D = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_D) & JUST_RELEASED)
-            b.keydown.keydown_D = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_UP) & JUST_PRESSED)
-            b.keydown.keydown_UP = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_UP) & JUST_RELEASED)
-            b.keydown.keydown_UP = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_DOWN) & JUST_PRESSED)
-            b.keydown.keydown_DOWN = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_DOWN) & JUST_RELEASED)
-            b.keydown.keydown_DOWN = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_RIGHT) & JUST_PRESSED)
-            b.keydown.keydown_RIGHT = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_RIGHT) & JUST_RELEASED)
-            b.keydown.keydown_RIGHT = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_LEFT) & JUST_PRESSED)
-            b.keydown.keydown_LEFT = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_LEFT) & JUST_RELEASED)
-            b.keydown.keydown_LEFT = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_SPACE) & JUST_PRESSED)
-            b.keydown.keydown_SPACE = true;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_SPACE) & JUST_RELEASED)
-            b.keydown.keydown_SPACE = false;
-        if (inputHandler.GetKeycodeState(GLFW_KEY_ENTER) & JUST_PRESSED)
-            b.keydown.keydown_ENTER = true;
+        if (inputHandler.GetKeycodeState(GLFW_KEY_ESCAPE) & JUST_PRESSED) {
+            if(state == GAME) {
+                b.mute();
+                state = PAUSE;
+            }
+            else if(state == PAUSE)
+                state = GAME;
+        }
+        b.keydown.W.val = key(GLFW_KEY_W) ? true : false;
+        b.keydown.A.val = key(GLFW_KEY_A) ? true : false;
+        b.keydown.S.val = key(GLFW_KEY_S) ? true : false;
+        b.keydown.D.val = key(GLFW_KEY_D) ? true : false;
+        b.keydown.UP.val = key(GLFW_KEY_UP) ? true : false;
+        b.keydown.DOWN.val = key(GLFW_KEY_DOWN) ? true : false;
+        b.keydown.RIGHT.val = key(GLFW_KEY_RIGHT) ? true : false;
+        b.keydown.LEFT.val = key(GLFW_KEY_LEFT) ? true : false;
+        b.keydown.SPACE.val = key(GLFW_KEY_SPACE) ? true : false;
+        b.keydown.ENTER.val = key(GLFW_KEY_ENTER) ? true : false;
 		if (inputHandler.GetKeycodeState(GLFW_KEY_F11) & JUST_RELEASED)
 			mWindowManager.ToggleFullscreenStatusForWindow(window);
 
@@ -238,13 +408,27 @@ edaf80::Assignment5::run()
 		glViewport(0, 0, framebuffer_width, framebuffer_height);
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-		if (!shader_reload_failed) {
-
-		}
+        
+        switch(state) {
+            case(MENU):
+                elapsed_time_s += std::chrono::duration<float>(deltaTimeUs).count();
+                b.mainMenu();
+                break;
+            case(GAME):
+                elapsed_time_s += std::chrono::duration<float>(deltaTimeUs).count();
+                b.gameframe();
+                break;
+            case(PAUSE):
+                b.gameframe();
+                break;
+            case(EXIT):
+                glfwSetWindowShouldClose(window, true);
+                break;
+        }
+        
+        
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 		glfwSwapBuffers(window);
 	}
 }

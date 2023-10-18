@@ -3,8 +3,6 @@ target_sources (
 	bonafide
 	PUBLIC
 		[[bonafide.hpp]]
-		[[animation.hpp]]
-		[[physics.hpp]]
 	PRIVATE
 		[[bonafide.cpp]]
 		[[animation.cpp]]

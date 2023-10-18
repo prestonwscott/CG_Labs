@@ -23,22 +23,19 @@ namespace
 	}
 
 	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		WindowManager::WindowDatum* const instance = static_cast<WindowManager::WindowDatum*>(glfwGetWindowUserPointer(window));
-		instance->input_handler.FeedKeyboard(key, scancode, action);
-
+{
+        WindowManager::WindowDatum* const instance = static_cast<WindowManager::WindowDatum*>(glfwGetWindowUserPointer(window));
+        instance->input_handler.FeedKeyboard(key, scancode, action);
+        
 #ifdef _WIN32
-		bool should_close = (key == GLFW_KEY_F4) && (mods == GLFW_MOD_ALT);
+        bool should_close = (key == GLFW_KEY_F4) && (mods == GLFW_MOD_ALT);
 #elif defined __APPLE__
-		bool should_close = (key == GLFW_KEY_Q) && (mods == GLFW_MOD_SUPER);
+        bool should_close = (key == GLFW_KEY_Q) && (mods == GLFW_MOD_SUPER);
 #elif defined __linux__
-		bool should_close = (key == GLFW_KEY_Q) && (mods == GLFW_MOD_CONTROL);
+        bool should_close = (key == GLFW_KEY_Q) && (mods == GLFW_MOD_CONTROL);
 #else
-		bool should_close = false;
+        bool should_close = false;
 #endif
-		should_close |= (key == GLFW_KEY_ESCAPE);
-		if (should_close)
-			glfwSetWindowShouldClose(window, true);
 
 		ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 	}

@@ -22,6 +22,8 @@ namespace parametric_shapes
 	bonobo::mesh_data createQuad(float const width, float const height,
 	                             unsigned int const horizontal_split_count = 0u,
                                  unsigned int const vertical_split_count = 0u);
+
+    bonobo::mesh_data createPane(float const width, float const height);
     
 
 	//! \brief Create a sphere for a given tesselation level and make it
