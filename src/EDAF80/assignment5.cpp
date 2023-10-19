@@ -361,14 +361,14 @@ edaf80::Assignment5::run()
     Node health;
     health.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     health.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/health.png")), GL_TEXTURE_2D);
-    health.get_transform().SetScale(glm::vec3(1, 0.2, 0.4));
+    health.get_transform().SetScale(glm::vec3(1, 0.1, 0.4));
     health.get_transform().RotateY(glm::pi<float>());
     health.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node bar;
     bar.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     bar.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/health_bar.png")), GL_TEXTURE_2D);
-    bar.get_transform().SetScale(glm::vec3(1, 0.2, 0.4));
+    bar.get_transform().SetScale(glm::vec3(1, 0.1, 0.4));
     bar.get_transform().RotateY(glm::pi<float>());
     bar.set_program(&diffuse_shader,diffuse_uniforms);
     

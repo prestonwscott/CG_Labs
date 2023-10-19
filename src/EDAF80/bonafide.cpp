@@ -99,10 +99,10 @@ bonafide::mainMenu() {
 int
 bonafide::gameframe()
 {
-    pt(PICON, camT.x + 3.2f, camT.y + 0.5, camT.z + 4.5f);
-    pt(CICON, camT.x - 2.4f, camT.y + 0.5, camT.z + 4.5f);
-    pt(HEALTH, camT.x + 2.7f, camT.y - 0.5, camT.z + 3.5f);
-    pt(BAR, camT.x + 3.2f, camT.y - 0.5, camT.z + 3.5f);
+    pt(PICON, camT.x + 2.8f, camT.y + 0.5, camT.z + 4.5f);
+    pt(CICON, camT.x - 1.9f, camT.y + 0.5, camT.z + 4.5f);
+    pt(HEALTH, camT.x + 2.5f, camT.y + 0.15, camT.z + 3.7f);
+    pt(BAR, camT.x + 2.5f, camT.y + 0.15, camT.z + 3.7f);
     //pt(SONAR, camT.x - 1.5f, camT.y + 0.5, camT.z + 4.5f);
     rp(PICON);
     rp(CICON);
@@ -147,7 +147,7 @@ bonafide::gameframe()
         rp(TEXT);
     } else {
         pt(WIN, camT.x + 2.5f, camT.y - 3.5, camT.z + 6.5f);
-        pt(TEXT, camT.x + 2.5f, camT.y - 2.5, camT.z + 5.5f);
+        pt(TEXT, camT.x + 2.5f, camT.y - 1.5, camT.z + 5.5f);
         rp(WIN);
         rp(TEXT);
     }
