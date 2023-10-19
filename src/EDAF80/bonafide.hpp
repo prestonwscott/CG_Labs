@@ -8,10 +8,13 @@
 #define clock (*time)
 #define camera (*cam)
 #define n(lib) (*(nodes.at(lib)))
+#define p(lib) panes.at(lib)
 #define np(lib) nodes.at(lib)
 #define r(lib); n(lib).render(camera.GetWorldToClipMatrix());
+#define rp(lib); p(lib).render(camera.GetWorldToClipMatrix());
 #define ro(lib); lib.render(camera.GetWorldToClipMatrix());
 #define t(lib,a1,a2,a3); n(lib).get_transform().SetTranslate(glm::vec3(a1,a2,a3));
+#define pt(lib,a1,a2,a3); p(lib).get_transform().SetTranslate(glm::vec3(a1,a2,a3));
 #define to(lib,a1,a2,a3); lib.get_transform().SetTranslate(glm::vec3(a1,a2,a3));
 #define tl(lib,a); lib.get_transform().SetTranslate(a);
 #define rtx(arg1,arg2) arg1.get_transform().RotateX(arg2)
@@ -22,6 +25,7 @@
 #define sub objects.submarine
 #define spawn_node(lib) (lib - 8)
 #define rand_coord rand() % RADIUS
+#define rand_coordy (rand() % 60) - 220
 #define light (*light_pos)
 #define getSub (*(sub.ship.object))
 #define getProp (*(sub.propeller))
@@ -31,16 +35,16 @@
 #define subT getSub.get_transform().GetTranslation()
 #define getT(arg) (arg).get_transform().GetTranslation()
 
-#define NUM_ENEMIES 20
-#define NUM_LOOT 20
+#define NUM_ENEMIES 50
+#define NUM_LOOT 50
 #define TREASURE_PROB 0.02
 #define TIME_BUF 2
-#define SEAFLOOR_GRID 12 //num x num
-#define RADIUS 50
-#define COLL_THRESH 1.0f
-#define SEAFLOOR_THRESH RADIUS * RADIUS
+#define SEAFLOOR_GRID 32 //num x num
+#define RADIUS 150
+#define COLL_THRESH 8.0f
+#define SEAFLOOR_THRESH 200
 #define SEAFLOOR_DEPTH 280
-#define SUB_SPEED 0.5
+#define SUB_SPEED 1
 #define SUB_ROT glm::pi<float>() / 8
 
 #define coll(arg1,arg2,i) glm::distance(getT(arg1),getT(arg2.at(i))) <= COLL_THRESH
@@ -48,7 +52,7 @@
 class bonafide
 {
 public:
-    bonafide(std::vector<Node*> nodes, FPSCameraf* cam, float* time, glm::vec3* light_pos);
+    bonafide(std::vector<Node*> nodes, std::vector<Node> panes, FPSCameraf* cam, float* time, glm::vec3* light_pos);
     
     struct input_t {
         bool val;
@@ -60,6 +64,8 @@ public:
         struct input_t A;
         struct input_t S;
         struct input_t D;
+        struct input_t E;
+        struct input_t Q;
         struct input_t UP;
         struct input_t DOWN;
         struct input_t LEFT;
@@ -83,7 +89,7 @@ public:
     };
     glm::vec3* light_pos;
 
-    void mainMenu();
+    int mainMenu();
     void pauseMenu();
     void gameframe();
     void mute();
@@ -97,19 +103,24 @@ private:
     
     glm::vec3* subTp;
     glm::vec3* camTp;
-    const glm::vec3 c_offset = glm::vec3(0.0f, 1.0f, -10.0f);
+    const glm::vec3 c_offset = glm::vec3(0.0f, 1.0f, -15.0f);
     const glm::vec3 s_offset = glm::vec3(0.0f, 2.0f, -5.0f);
     const glm::vec3 p_offset = glm::vec3(0.0f, 0.0f, -1.3f);
+    const glm::vec3 f_offset = glm::vec3(-250.0f, 0.0f, 0.0f);
     const glm::vec3 title_offset = glm::vec3(1.0f, 0.0f, 1.3f);
     const glm::vec3 spawn = glm::vec3(0.0f, -250.0f, 0.0f);
     std::vector<Node*> nodes;
     std::vector<Node> seafloor;
+    std::vector<Node> panes;
     FPSCameraf* cam;
     float* time;
     
     int difficulty = 0;
     int points = 0;
     int collisions = 0;
+    glm::vec3 bones;
+    bool dino;
+    int accomp = -1;
     
     enum audio_scenarios {
         SHARK_APPROACH = 0,
@@ -151,7 +162,21 @@ private:
         AMMONITE = 13,
         COIN = 14,
         TREASURE = 15,
-        PANE = 16
+    };
+    
+    enum libpane {
+        TITLE = 0,
+        START = 1,
+        QUIT = 2,
+        CURSOR = 3,
+        SONAR = 4,
+        SONAR_PING = 5,
+        CICON = 6,
+        PICON = 7,
+        HEALTH = 8,
+        BAR = 9,
+        WIN = 10,
+        LOSE = 11,
     };
     
     class animation_c {

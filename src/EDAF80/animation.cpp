@@ -6,22 +6,28 @@ bonafide::animation_c::input(char key)
 {
     switch(key) {
         case 'W':
-            to((*submarine), transform.x, transform.y, transform.z + 1.0f/SUB_SPEED);
+            to((*submarine), transform.x, transform.y, transform.z + SUB_SPEED);
             break;
         case 'A':
-            to((*submarine), transform.x + 1.0f/SUB_SPEED, transform.y, transform.z);
+            to((*submarine), transform.x + SUB_SPEED, transform.y, transform.z);
             break;
         case 'S':
-            to((*submarine), transform.x, transform.y, transform.z - 1.0f/SUB_SPEED);
+            to((*submarine), transform.x, transform.y, transform.z - SUB_SPEED);
             break;
         case 'D':
-            to((*submarine), transform.x - 1.0f/SUB_SPEED, transform.y, transform.z);
+            to((*submarine), transform.x - SUB_SPEED, transform.y, transform.z);
+            break;
+        case 'E':
+            to((*submarine), transform.x, transform.y + SUB_SPEED, transform.z);
+            break;
+        case 'Q':
+            to((*submarine), transform.x, transform.y - SUB_SPEED, transform.z);
             break;
         case 'U':
-            to((*submarine), transform.x, transform.y + 1.0f/SUB_SPEED, transform.z);
+            to((*submarine), transform.x, transform.y + SUB_SPEED, transform.z);
             break;
         case 'N':
-            to((*submarine), transform.x, transform.y - 1.0f/SUB_SPEED, transform.z);
+            to((*submarine), transform.x, transform.y - SUB_SPEED, transform.z);
             break;
         case 'R':
             rty((*submarine), SUB_ROT);
@@ -29,7 +35,7 @@ bonafide::animation_c::input(char key)
         case 'L':
             rty((*submarine), -SUB_ROT);
             break;
-        case 'E':
+        case 'T':
             /*if(buff != 999.0f) {
                 buff = light.z;
                 light.z = 999.0f;
