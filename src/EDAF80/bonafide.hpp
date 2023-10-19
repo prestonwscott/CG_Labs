@@ -3,33 +3,52 @@
 #include "core/node.hpp"
 #include "core/FPSCamera.h"
 #include "core/Bonobo.h"
+#include <glm/gtc/type_ptr.hpp>
 
 #define clock (*time)
 #define camera (*cam)
-#define n(lib) nodes.at(lib)
+#define n(lib) (*(nodes.at(lib)))
+#define np(lib) nodes.at(lib)
 #define r(lib); n(lib).render(camera.GetWorldToClipMatrix());
 #define ro(lib); lib.render(camera.GetWorldToClipMatrix());
 #define t(lib,a1,a2,a3); n(lib).get_transform().SetTranslate(glm::vec3(a1,a2,a3));
 #define to(lib,a1,a2,a3); lib.get_transform().SetTranslate(glm::vec3(a1,a2,a3));
+#define tl(lib,a); lib.get_transform().SetTranslate(a);
 #define rtx(arg1,arg2) arg1.get_transform().RotateX(arg2)
+#define rty(arg1,arg2) arg1.get_transform().RotateY(arg2)
 #define rtz(arg1,arg2) arg1.get_transform().RotateZ(arg2)
 #define rtxg(arg) arg.get_transform().GetRotation().x
 #define rtzg(arg) arg.get_transform().GetRotation().z
 #define sub objects.submarine
 #define spawn_node(lib) (lib - 8)
+#define rand_coord rand() % RADIUS
+#define light (*light_pos)
+#define getSub (*(sub.ship.object))
+#define getProp (*(sub.propeller))
+#define getEnem objects.enemies
+#define getLoot objects.loot
+#define camT camera.mWorld.GetTranslation()
+#define subT getSub.get_transform().GetTranslation()
+#define getT(arg) (arg).get_transform().GetTranslation()
 
-#define NUM_ENEMIES 0
-#define NUM_LOOT 0
+#define NUM_ENEMIES 20
+#define NUM_LOOT 20
 #define TREASURE_PROB 0.02
 #define TIME_BUF 2
-#define SEAFLOOR_GRID 3 //num x num
-#define SEAFLOOR_THRESH 250
+#define SEAFLOOR_GRID 12 //num x num
+#define RADIUS 50
+#define COLL_THRESH 1.0f
+#define SEAFLOOR_THRESH RADIUS * RADIUS
 #define SEAFLOOR_DEPTH 280
+#define SUB_SPEED 0.5
+#define SUB_ROT glm::pi<float>() / 8
+
+#define coll(arg1,arg2,i) glm::distance(getT(arg1),getT(arg2.at(i))) <= COLL_THRESH
 
 class bonafide
 {
 public:
-    bonafide(std::vector<Node> nodes, FPSCameraf* cam, float* time);
+    bonafide(std::vector<Node*> nodes, FPSCameraf* cam, float* time, glm::vec3* light_pos);
     
     struct input_t {
         bool val;
@@ -48,6 +67,21 @@ public:
         struct input_t SPACE;
         struct input_t ENTER;
     } keydown;
+    
+    enum MovingStyle {
+        CONTROL_POINTS,
+        CIRCULAR,
+        FOREWARD,
+        BACKWARD,
+        UPWARD,
+        DOWNWARD
+    };
+    
+    enum CircularMovement {
+        CLOCKWISE,
+        COUNTER_CLOCKWISE
+    };
+    glm::vec3* light_pos;
 
     void mainMenu();
     void pauseMenu();
@@ -58,19 +92,24 @@ private:
     void gen_floor();
     void load(int who, int diff);
     glm::vec3 spawn_loc(int who);
+    void moveObjectCircular(Node& Object, float Omega, float Radius, enum CircularMovement direction, float elapsed_time_s);
+    void moveObjectLinear(Node& Object, float movingSpeed, glm::vec3 MovingDirection, float elapsed_time_s);
     
-    glm::vec3 subT;
-    glm::vec3 camT;
+    glm::vec3* subTp;
+    glm::vec3* camTp;
     const glm::vec3 c_offset = glm::vec3(0.0f, 1.0f, -10.0f);
+    const glm::vec3 s_offset = glm::vec3(0.0f, 2.0f, -5.0f);
     const glm::vec3 p_offset = glm::vec3(0.0f, 0.0f, -1.3f);
     const glm::vec3 title_offset = glm::vec3(1.0f, 0.0f, 1.3f);
     const glm::vec3 spawn = glm::vec3(0.0f, -250.0f, 0.0f);
-    std::vector<Node> nodes;
+    std::vector<Node*> nodes;
     std::vector<Node> seafloor;
     FPSCameraf* cam;
     float* time;
     
     int difficulty = 0;
+    int points = 0;
+    int collisions = 0;
     
     enum audio_scenarios {
         SHARK_APPROACH = 0,
@@ -79,14 +118,17 @@ private:
     } playback;
     
     struct properties {
-        Node object;
+        Node* object = nullptr;
+        Node model;
         int health;
+        float radius;
+        float speed;
     };
 
     struct objects_t {
         struct submarine_t {
             struct properties ship;
-            Node propeller;
+            Node* propeller;
         } submarine;
         std::vector<struct properties> enemies;
         std::vector<Node> loot;
@@ -104,11 +146,11 @@ private:
         TUNA = 8,
         SHARK = 9,
         HAMMER_SHARK = 10,
-        COIN = 11,
-        TREASURE = 12,
-        SEAWEED = 13,
-        ROCK = 14,
-        AMMONITE = 15,
+        SEAWEED = 11,
+        ROCK = 12,
+        AMMONITE = 13,
+        COIN = 14,
+        TREASURE = 15,
         PANE = 16
     };
     
@@ -116,8 +158,10 @@ private:
     public:
         void input(char key);
         float* time;
-        struct objects_t* objects;
-        glm::vec3* subT;
+        Node* submarine;
+        glm::vec3 transform;
+        glm::vec3* light_pos;
+        float buff = 999.0f;
     } animation;
     class physics_c {
     public:

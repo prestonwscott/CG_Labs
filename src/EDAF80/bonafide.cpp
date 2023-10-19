@@ -1,22 +1,25 @@
 #include "bonafide.hpp"
 
 
-bonafide::bonafide(std::vector<Node> nodes, FPSCameraf* cam, float* time){
+bonafide::bonafide(std::vector<Node*> nodes, FPSCameraf* cam, float* time, glm::vec3* light_pos){
     this->nodes = nodes;
     this->cam = cam;
     this->time = time;
+    this->light_pos = light_pos;
     
-    sub.ship.object = n(SUBMARINE_BODY);
-    to(sub.ship.object, spawn.x, spawn.y, spawn.z);
+    sub.ship.object = np(SUBMARINE_BODY);
+    sub.ship.model = n(SUBMARINE_BODY); //useless but no default Node
+    to(getSub, spawn.x, spawn.y, spawn.z);
     sub.ship.health = 100;
-    sub.propeller = n(SUBMARINE_PROPELLER);
-    sub.propeller.get_transform().RotateY(glm::three_over_two_pi<float>());
+    sub.propeller = np(SUBMARINE_PROPELLER);
+    getProp.get_transform().RotateY(glm::three_over_two_pi<float>());
+    printf("%p\n", cam);
+    printf("%p\n", this->cam);
     
     animation.time = time;
-    animation.objects = &objects;
-    animation.subT = &subT;
     physics.time = time;
     physics.objects = &objects;
+    animation.submarine = &getSub;
     
     int idx = 0;
     for(int i=0;i<SEAFLOOR_GRID;i++){
@@ -26,20 +29,46 @@ bonafide::bonafide(std::vector<Node> nodes, FPSCameraf* cam, float* time){
         }
     }
     camera.mWorld.SetTranslate(glm::vec3(5.0f,-148.0f,8.0f));
-    camT = camera.mWorld.GetTranslation();
+    
+    glm::vec3 buffC = camT;
+    float buffT = clock;
+    
+    for (int i = 0; i < NUM_LOOT; i++) {
+        Node coin = n(COIN);
+        to(coin, rand_coord, rand_coord - 250.0f, rand_coord - 250.0f);
+        objects.loot.push_back(coin);
+    }
+    for (int i = 0; i < NUM_ENEMIES; i++) {
+        struct properties tuna_p;
+        struct properties shark_p;
+        Node tuna = n(TUNA);
+        Node shark = n(SHARK);
+        to(tuna, rand_coord, rand_coord - 250.0f, rand_coord);
+        to(shark, rand_coord, rand_coord - 250.0f, rand_coord);
+        tuna_p.radius = rand() % RADIUS;
+        tuna_p.speed = (rand() % 4) * (glm::pi<float>()/20);
+        shark_p.radius = rand() % RADIUS;
+        shark_p.speed = (rand() % 5) * (glm::pi<float>() / 30);
+        tuna_p.model = tuna;
+        shark_p.model = shark;
+        objects.enemies.push_back(tuna_p);
+        objects.enemies.push_back(shark_p);
+    }
+    
+    glm::vec3 TreasurePosition = glm::vec3(rand_coord, rand_coord, rand_coord);
 }
 
 void
 bonafide::mainMenu() {
     float waterHeight = -1.0f * sin(clock) - 150.0f;
-    to(sub.ship.object, subT.x + 7.0f, waterHeight, subT.z - 5.0f);
+    to(getSub, subT.x + 7.0f, waterHeight, subT.z - 5.0f);
     t(PANE, camT.x - 5.0f, camT.y + 2.0f, camT.z - 5.0f);
     r(PANE);
     t(OCEAN, camT.x - 500.0f, waterHeight - 0.6f, camT.z - 500.0f);
     r(OCEAN);
-    to(sub.propeller, (subT + p_offset).x, (subT + p_offset).y, (subT + p_offset).z);
-    ro(sub.ship.object);
-    ro(sub.propeller);
+    to(getProp, (subT + p_offset).x, (subT + p_offset).y, (subT + p_offset).z);
+    ro(getSub);
+    ro(getProp);
     r(SKYBOX);
 }
 
@@ -51,27 +80,43 @@ bonafide::pauseMenu() {
 void
 bonafide::gameframe()
 {
-    
+    printf("%f,%f,%f bon\n", camera.mWorld.GetTranslation().x, camera.mWorld.GetTranslation().y, camera.mWorld.GetTranslation().x);
+    bool interpolate = false;
+    bool show_control_points = true;
+    int iRotationCnt = 0;
+    int iCollisionCnt = 0;
+    int iRewardCounter = 0;
+    float const fSharkCollRadius = 1.0f;
+    float const fTunaCollRadius = 1.0f;
+    float const fCoinCollRadius = 1.0f;
+    float const fSubMarineCollRadius = 1.0f;
+    float const fTreasureCollRadius = 1.0f;
+    bool circularMovementSet = false;
     
     float waterHeight = -3.0f * sin(clock) - 150.0f;
-    subT = glm::vec3(sub.ship.object.get_transform().GetTranslation());
-    camT = glm::vec3(camera.mWorld.GetTranslation());
     
-    to(sub.propeller, subT.x - 50.0f, subT.y, subT.z - 50.0f);
-    //rtz(sub.propeller, (((int)clock) / 10) % 6);
+    to(getProp, subT.x - 50.0f, subT.y, subT.z - 50.0f);
+    rtz(getProp, 0.1f);
     
     t(OCEAN, camT.x - 500.0f, waterHeight, camT.z - 500.0f);
     r(OCEAN);
-    //rtx(sub.propeller, rtxg(sub.ship.object));
-    //rtz(sub.propeller, rtzg(sub.ship.object));
-    to(sub.propeller, (subT + p_offset).x, (subT + p_offset).y, (subT + p_offset).z);
-    ro(sub.ship.object);
-    ro(sub.propeller);
+    //rtx(getProp, rtxg(getSub));
+    //rtz(getProp, rtzg(getSub));
+    to(getProp, (subT + p_offset).x, (subT + p_offset).y, (subT + p_offset).z);
+    ro(getSub);
+    ro(getProp);
     for(Node seg : seafloor){
         ro(seg);
     }
-    //camera.mWorld.LookAt(subT - c_offset);
-    //camera.mWorld.SetTranslate(subT + c_offset);
+    camera.mWorld.LookAt(subT - c_offset);
+    camera.mWorld.SetTranslate(subT + c_offset);
+    //glm::vec3 tea = glm::vec3(1.0f,0.0f,0.0f);
+    //camera.mWorld.SetRotate(1.0f, glm::rotate(glm::quat(tea), subT - c_offset));
+    
+    //camera.mWorld.SetRotateY(glm::dot(glm::vec3(glm::column(getSub.get_transform().GetRotation(),2)), glm::vec3(1.0f,1.0f,1.0f)));
+    light = subT + s_offset;
+    
+    //animation.transform = subT;
     
     /*
     struct input_t* temp = &keydown.W;
@@ -115,7 +160,7 @@ bonafide::gameframe()
      
     
     if(camT.y >= waterHeight) {
-        to(sub.ship.object, subT.x, waterHeight, subT.z);
+        to(getSub, subT.x, waterHeight, subT.z);
         t(SKYBOX, camT.x, 0.0f, camT.z);
         r(SKYBOX);
     }
@@ -126,12 +171,74 @@ bonafide::gameframe()
     
     if(!(int)clock % TIME_BUF){
         gen_floor();
-        if(objects.enemies.size() < NUM_ENEMIES * difficulty + 1)
+        /*if(objects.enemies.size() < NUM_ENEMIES * difficulty + 1)
             load(spawn_node(TUNA), NUM_ENEMIES - (int)objects.enemies.size());
         if(objects.loot.size() < NUM_LOOT * difficulty + 1)
-            load(spawn_node(COIN), NUM_LOOT - (int)objects.loot.size());
+            load(spawn_node(COIN), NUM_LOOT - (int)objects.loot.size());*/
     }
-        
+    
+    for (int i = 0; i < getLoot.size(); i++)
+    {
+        if (coll(getSub,getLoot,i)) {
+            points++;
+            getLoot.erase(objects.loot.begin() + i);
+            Node coin = n(COIN);
+            getLoot.emplace_back(coin);
+            to(getLoot.at(i), rand_coord, rand_coord - 250.0f, rand_coord);
+            std::cout << "Point count " << points << "\n";
+        } else {
+            ro(getLoot.at(i));
+            rty(getLoot.at(i), glm::pi<float>() / 20.0f);
+        }
+    }
+    
+    for (int i = 0; i < getEnem.size(); i++)
+    {
+        ro(getEnem.at(i).model);
+        if (glm::distance(getT(getSub),getT(getEnem.at(i).model)) <= COLL_THRESH)
+        {
+            if(points)
+                points--;
+            else {
+                sub.ship.health = 0;
+                std::cout << "YOU LOSE! Point count " << points << "\n";
+            }
+            tl(getSub, subT + 3.0f * (getT(getEnem.at(i).model) - subT));
+        }
+    
+    }
+}
+
+void
+bonafide::moveObjectCircular(Node& Object, float Omega, float Radius, enum CircularMovement direction, float elapsed_time_s)
+{
+    float pi = 3.14f;
+    glm::vec3 newLoc;
+
+    glm::vec3 ObjectLoc = Object.get_transform().GetTranslation();
+    //float vecLen = sqrt( pow(ObjectLoc.x,2) + pow(ObjectLoc.y, 2) + pow(ObjectLoc.z, 2) );
+    float vecLen = abs(Radius);
+    if (vecLen < 10)
+    {
+        vecLen = 10; //default length
+    }
+    newLoc = glm::vec3(vecLen * cos(Omega * elapsed_time_s), ObjectLoc.y, vecLen * sin(Omega * elapsed_time_s));
+    Object.get_transform().LookAt(newLoc);
+    Object.get_transform().RotateY(pi);
+    Object.get_transform().SetTranslate(newLoc);
+}
+
+void
+bonafide::moveObjectLinear(Node& Object, float movingSpeed, glm::vec3 MovingDirection, float elapsed_time_s)
+{
+    float pi = 3.14f;
+    glm::vec3 newLoc;
+
+    glm::vec3 ObjectLoc = Object.get_transform().GetTranslation();
+    newLoc = ObjectLoc + movingSpeed * elapsed_time_s * normalize(MovingDirection);
+    Object.get_transform().LookAt(newLoc);
+    Object.get_transform().RotateY(pi);
+    Object.get_transform().SetTranslate(newLoc);
 }
 
 void
@@ -198,33 +305,37 @@ bonafide::load(int who, int diff)
 {
     for(int i=0;i<diff && who;i++){
         struct properties buf;
+        Node nbuf;
         int res = (int)rand() % (HAMMER_SHARK * difficulty) + TUNA;
         glm::vec3 coord;
         switch(res){
             case(TUNA):
-                buf.object = n(TUNA);
+                nbuf = n(TUNA);
+                buf.object = &nbuf; //bad code, create new tuna object
                 coord = spawn_loc(spawn_node(TUNA));
                 buf.health = 25;
                 break;
             case(SHARK):
-                buf.object = n(SHARK);
+                nbuf = n(SHARK);
+                buf.object = &nbuf;
                 coord = spawn_loc(spawn_node(SHARK));
                 buf.health = 75;
                 break;
             default:
-                buf.object = n(HAMMER_SHARK);
+                nbuf = n(HAMMER_SHARK);
+                buf.object = &nbuf;
                 coord = spawn_loc(spawn_node(HAMMER_SHARK));
                 buf.health = 100;
         }
-        to(buf.object, coord.x, coord.y, coord.z);
+        to((*(buf.object)), coord.x, coord.y, coord.z);
         objects.enemies.emplace_back(buf);
     }
     for(int i=0;i<diff && !who;i++){
         struct properties buf;
         bool lucky = (int)rand() % (int)(1/TREASURE_PROB) == (int)clock % (int)(1/TREASURE_PROB);
-        buf.object = lucky ? n(TREASURE) : n(COIN);
+        buf.object = lucky ? np(TREASURE) : np(COIN);
         glm::vec3 coord = lucky ? spawn_loc(spawn_node(TREASURE)) : spawn_loc(spawn_node(COIN));
-        to(buf.object, coord.x, coord.y, coord.z);
+        to((*(buf.object)), coord.x, coord.y, coord.z);
         buf.health = 1;
         objects.enemies.emplace_back(buf);
     }

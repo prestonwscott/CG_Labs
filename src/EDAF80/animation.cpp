@@ -1,37 +1,44 @@
 #include "bonafide.hpp"
-#define ob (*objects)
-#define sT (*subT)
+#define transform (*submarine).get_transform().GetTranslation()
 
 void
 bonafide::animation_c::input(char key)
 {
     switch(key) {
         case 'W':
-            printf("w\n");
-            to(ob.submarine.ship.object, sT.x - 0.5f, sT.y, sT.z);
+            to((*submarine), transform.x, transform.y, transform.z + 1.0f/SUB_SPEED);
             break;
         case 'A':
-            to(ob.submarine.ship.object, sT.x, sT.y, sT.z - 0.5f);
+            to((*submarine), transform.x + 1.0f/SUB_SPEED, transform.y, transform.z);
             break;
         case 'S':
-            to(ob.submarine.ship.object, sT.x + 0.5f, sT.y, sT.z);
+            to((*submarine), transform.x, transform.y, transform.z - 1.0f/SUB_SPEED);
             break;
         case 'D':
-            to(ob.submarine.ship.object, sT.x, sT.y, sT.z + 0.5f);
+            to((*submarine), transform.x - 1.0f/SUB_SPEED, transform.y, transform.z);
             break;
         case 'U':
-            to(ob.submarine.ship.object, sT.x, sT.y + 0.5f, sT.z);
+            to((*submarine), transform.x, transform.y + 1.0f/SUB_SPEED, transform.z);
             break;
         case 'N':
-            to(ob.submarine.ship.object, sT.x, sT.y + 0.5f, sT.z);
+            to((*submarine), transform.x, transform.y - 1.0f/SUB_SPEED, transform.z);
             break;
         case 'R':
+            rty((*submarine), SUB_ROT);
             break;
         case 'L':
+            rty((*submarine), -SUB_ROT);
             break;
         case 'E':
+            /*if(buff != 999.0f) {
+                buff = light.z;
+                light.z = 999.0f;
+            } else {
+                light.z = buff;
+            }*/
             break;
         case 'P':
+            //fire artillery idk
             break;
     }
 }
