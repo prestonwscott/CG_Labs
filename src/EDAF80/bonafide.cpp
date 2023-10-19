@@ -76,7 +76,6 @@ bonafide::mainMenu() {
     r(SUBMARINE_PROPELLER);
     r(SKYBOX);
     bool curs_origin = getT(p(CURSOR)).y == camT.y - 0.2;
-    printf("%f\n", getT(p(CURSOR)).y);
     
     if(keydown.DOWN.val && curs_origin){
         pt(CURSOR, camT.x - 1.5f, camT.y - 0.5, camT.z - 2.2f);
@@ -97,22 +96,19 @@ bonafide::mainMenu() {
     return 0;
 }
 
-void
-bonafide::pauseMenu() {
-    
-}
-
-void
+int
 bonafide::gameframe()
 {
-    if(accomp == 1) {
-        pt(WIN, subT.x - 1.5f, subT.y + -5.0f, subT.z + 2.5f);
-        rp(WIN);
-    } else if(!accomp) {
-        pt(LOSE, subT.x - 1.5f, subT.y + 0.5, subT.z - 2.5f);
-        rp(LOSE);
-    }
-    
+    pt(PICON, camT.x + 3.2f, camT.y + 0.5, camT.z + 4.5f);
+    pt(CICON, camT.x - 2.4f, camT.y + 0.5, camT.z + 4.5f);
+    pt(HEALTH, camT.x + 2.7f, camT.y - 0.5, camT.z + 3.5f);
+    pt(BAR, camT.x + 3.2f, camT.y - 0.5, camT.z + 3.5f);
+    //pt(SONAR, camT.x - 1.5f, camT.y + 0.5, camT.z + 4.5f);
+    rp(PICON);
+    rp(CICON);
+    rp(HEALTH);
+    rp(BAR);
+    //rp(SONAR);
     bool interpolate = false;
     bool show_control_points = true;
     int iRotationCnt = 0;
@@ -140,8 +136,21 @@ bonafide::gameframe()
     for(Node seg : seafloor){
         ro(seg);
     }
-    camera.mWorld.LookAt(subT - c_offset);
-    camera.mWorld.SetTranslate(subT + c_offset);
+    
+    if(accomp == -1) {
+        camera.mWorld.LookAt(subT - c_offset);
+        camera.mWorld.SetTranslate(subT + c_offset);
+    }else if (!accomp) {
+        pt(LOSE, camT.x + 2.5f, camT.y - 4.5, camT.z + 6.5f);
+        pt(TEXT, camT.x + 2.5f, camT.y - 2.5, camT.z + 5.5f);
+        rp(LOSE);
+        rp(TEXT);
+    } else {
+        pt(WIN, camT.x + 2.5f, camT.y - 3.5, camT.z + 6.5f);
+        pt(TEXT, camT.x + 2.5f, camT.y - 2.5, camT.z + 5.5f);
+        rp(WIN);
+        rp(TEXT);
+    }
     //glm::vec3 tea = glm::vec3(1.0f,0.0f,0.0f);
     //camera.mWorld.SetRotate(1.0f, glm::rotate(glm::quat(tea), subT - c_offset));
     
@@ -208,14 +217,14 @@ bonafide::gameframe()
         t(WATERBOX, camT.x, camT.y, camT.z);
         r(WATERBOX);
     }
-    
+    /*
     if(!(int)clock % TIME_BUF){
         gen_floor();
-        /*if(objects.enemies.size() < NUM_ENEMIES * difficulty + 1)
+        if(objects.enemies.size() < NUM_ENEMIES * difficulty + 1)
             load(spawn_node(TUNA), NUM_ENEMIES - (int)objects.enemies.size());
         if(objects.loot.size() < NUM_LOOT * difficulty + 1)
-            load(spawn_node(COIN), NUM_LOOT - (int)objects.loot.size());*/
-    }
+            load(spawn_node(COIN), NUM_LOOT - (int)objects.loot.size());
+    }*/
     
     if(dino){
         t(DINO_SKELETON, bones.x, bones.y, bones.z);
@@ -273,6 +282,7 @@ bonafide::gameframe()
             tl(getSub, subT + 3.0f * (getT(getEnem.at(i).model) - subT));
         }
     }
+    return -1;
 }
 
 void
@@ -426,10 +436,4 @@ bonafide::test()
     int node = (int)((clock/5.0f)) % TREASURE;
     camera.mWorld.LookAt(n(node).get_transform().GetTranslation());
     r(node);
-}
-
-void
-bonafide::mute()
-{
-    
 }

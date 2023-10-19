@@ -90,9 +90,8 @@ public:
     glm::vec3* light_pos;
 
     int mainMenu();
-    void pauseMenu();
-    void gameframe();
-    void mute();
+    int gameframe();
+    int accomp = -1;
 private:
     void test();
     void gen_floor();
@@ -120,7 +119,6 @@ private:
     int collisions = 0;
     glm::vec3 bones;
     bool dino;
-    int accomp = -1;
     
     enum audio_scenarios {
         SHARK_APPROACH = 0,
@@ -177,6 +175,7 @@ private:
         BAR = 9,
         WIN = 10,
         LOSE = 11,
+        TEXT = 12,
     };
     
     class animation_c {

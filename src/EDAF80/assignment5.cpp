@@ -333,52 +333,65 @@ edaf80::Assignment5::run()
     Node sonar;
     sonar.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     sonar.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/sonar.png")), GL_TEXTURE_2D);
-    sonar.get_transform().SetScale(glm::vec3(1, 0.6, 0.6));
+    sonar.get_transform().SetScale(glm::vec3(1, 0.8, 0.6));
+    sonar.get_transform().RotateY(glm::pi<float>());
     sonar.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node sonarping;
     sonarping.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     sonarping.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/sonar_ping1.png")), GL_TEXTURE_2D);
     sonarping.get_transform().SetScale(glm::vec3(1, 0.4, 0.4));
+    sonarping.get_transform().RotateY(glm::pi<float>());
     sonarping.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node cicon;
     cicon.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     cicon.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/coin.png")), GL_TEXTURE_2D);
-    cicon.get_transform().SetScale(glm::vec3(1, 0.3, 0.3));
+    cicon.get_transform().SetScale(glm::vec3(1, 0.6, 0.3));
+    cicon.get_transform().RotateY(glm::pi<float>());
     cicon.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node picon;
     picon.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     picon.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/propeller.png")), GL_TEXTURE_2D);
-    picon.get_transform().SetScale(glm::vec3(1, 0.3, 0.3));
+    picon.get_transform().SetScale(glm::vec3(1, 0.6, 0.3));
+    picon.get_transform().RotateY(glm::pi<float>());
     picon.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node health;
     health.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     health.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/health.png")), GL_TEXTURE_2D);
-    health.get_transform().SetScale(glm::vec3(1, 0.4, 0.4));
+    health.get_transform().SetScale(glm::vec3(1, 0.2, 0.4));
+    health.get_transform().RotateY(glm::pi<float>());
     health.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node bar;
     bar.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
     bar.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/health_bar.png")), GL_TEXTURE_2D);
-    bar.get_transform().SetScale(glm::vec3(1, 0.4, 0.0));
+    bar.get_transform().SetScale(glm::vec3(1, 0.2, 0.4));
+    bar.get_transform().RotateY(glm::pi<float>());
     bar.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node win;
     win.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
-    win.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/win.png")), GL_TEXTURE_2D);
-    win.get_transform().SetScale(glm::vec3(8, 8, 8));
-    submarine_propeller.get_transform().SetRotateY(glm::pi<float>());
+    win.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("splash/win.png")), GL_TEXTURE_2D);
+    win.get_transform().SetScale(glm::vec3(6, 6, 6));
+    win.get_transform().RotateY(glm::pi<float>());
     win.set_program(&diffuse_shader,diffuse_uniforms);
     
     Node lose;
     lose.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
-    lose.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("sprites/lose.png")), GL_TEXTURE_2D);
-    win.get_transform().SetScale(glm::vec3(8, 8, 8));
-    submarine_propeller.get_transform().SetRotateY(glm::pi<float>());
+    lose.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("splash/lose.png")), GL_TEXTURE_2D);
+    lose.get_transform().SetScale(glm::vec3(7, 7, 7));
+    lose.get_transform().RotateY(glm::pi<float>());
     lose.set_program(&diffuse_shader,diffuse_uniforms);
+    
+    Node text;
+    text.set_geometry(parametric_shapes::createPane(1.0f, 1.0f));
+    text.add_texture("diffuse_map", bonobo::loadTexture2D(config::game_res_path("splash/message.png")), GL_TEXTURE_2D);
+    text.get_transform().SetScale(glm::vec3(5, 1, 1));
+    text.get_transform().RotateY(glm::pi<float>());
+    text.set_program(&diffuse_shader,diffuse_uniforms);
     
     std::vector<Node*> objects;
     objects.emplace_back(&sand);
@@ -411,6 +424,7 @@ edaf80::Assignment5::run()
     screens.emplace_back(bar);
     screens.emplace_back(win);
     screens.emplace_back(lose);
+    screens.emplace_back(text);
     
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -444,15 +458,13 @@ edaf80::Assignment5::run()
         
 		glfwPollEvents();
 		inputHandler.Advance();
-		mCamera.Update(deltaTimeUs * 20, inputHandler);
+		mCamera.Update(deltaTimeUs * 20, inputHandler,true,true);
 
-        if (inputHandler.GetKeycodeState(GLFW_KEY_ESCAPE) & JUST_PRESSED) {
-            if(state == GAME) {
-                b.mute();
-                state = PAUSE;
-            }
-            else if(state == PAUSE)
-                state = GAME;
+        if (inputHandler.GetKeycodeState(GLFW_KEY_ESCAPE) & JUST_PRESSED && state == GAME){
+            b.accomp = -1;
+            mCamera.mWorld.SetTranslate(glm::vec3(0.258907,-148.511444,6.213686));
+            mCamera.mWorld.RotateY(glm::pi<float>());
+            state = MENU;
         }
         /*if (inputHandler.GetKeycodeState(GLFW_KEY_ENTER) & JUST_PRESSED) {
             if(state == GAME) {
